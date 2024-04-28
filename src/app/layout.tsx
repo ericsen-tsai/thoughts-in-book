@@ -3,12 +3,11 @@ import "@/styles/globals.css";
 import { Inter } from "next/font/google";
 import { cookies } from "next/headers";
 
+import ResizablePanelLayout from "@/components/resizable-panel-layout";
 import { ThemeProvider } from "@/components/theme-provider";
 import { RESIZABLE_LAYOUT_COOKIE } from "@/constants/layout";
 import { cn } from "@/lib/utils";
 import { TRPCReactProvider } from "@/trpc/react";
-
-import ResizablePanelLayout from "./_components/resizable-panel-layout";
 
 const inter = Inter({
   subsets: ["latin"],

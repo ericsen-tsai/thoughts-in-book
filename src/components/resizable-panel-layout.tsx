@@ -4,13 +4,13 @@ import { FilePlusIcon, ArchiveIcon } from "@radix-ui/react-icons";
 import { setCookie } from "cookies-next";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
-import { Button } from "@/components/ui/button";
 import { RESIZABLE_LAYOUT_COOKIE } from "@/constants/layout";
 import { cn } from "@/lib/utils";
 import { useCreateNewNodeStore } from "@/stores/createNewNodeStore";
 import { type Node } from "@/types/node";
 
 import FolderTree from "./folder-tree";
+import { Button } from "./ui/button";
 
 const exampleFolder: Node = {
   name: "",

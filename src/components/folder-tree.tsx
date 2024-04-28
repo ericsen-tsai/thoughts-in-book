@@ -1,9 +1,10 @@
 import { ArrowRightIcon, ArrowDownIcon, DotIcon } from "@radix-ui/react-icons";
 import { useState } from "react";
 
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { type NodeType, type Node } from "@/types/node";
+
+import { Button } from "./ui/button";
 
 function FolderTree({
   node,
