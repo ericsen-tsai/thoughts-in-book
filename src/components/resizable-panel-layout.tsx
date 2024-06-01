@@ -5,6 +5,7 @@ import { setCookie } from "cookies-next";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 import { RESIZABLE_LAYOUT_COOKIE } from "@/constants/layout";
+import getNearestFolderPathByPath from "@/lib/getNearestFolderByPath";
 import { cn } from "@/lib/utils";
 import { useCreateNewNodeStore } from "@/stores/createNewNodeStore";
 import { type Node } from "@/types/node";
@@ -61,22 +62,31 @@ function ResizablePanelLayout({
   defaultLayout?: [number, number];
   children: React.ReactNode;
 }) {
-  const { selectedPath, onSelectedPathChange, onEditingTypeChange } =
-    useCreateNewNodeStore((state) => ({
-      selectedPath: state.selectedPath,
-      onSelectedPathChange: state.onSelectedPathChange,
-      onEditingTypeChange: state.onEditingTypeChange,
-    }));
+  const {
+    selectedPath,
+    onSelectedPathChange,
+    onEditingTypeChange,
+    editingType,
+  } = useCreateNewNodeStore((state) => ({
+    selectedPath: state.selectedPath,
+    onSelectedPathChange: state.onSelectedPathChange,
+    editingType: state.editingType,
+    onEditingTypeChange: state.onEditingTypeChange,
+  }));
 
   const handleLayout = (sizes: number[]) => {
     setCookie(RESIZABLE_LAYOUT_COOKIE, JSON.stringify(sizes));
   };
 
   const handleSelect = (path: string) => {
+    // since focusing on input will trigger onSelect, we need to prevent it
+    if (editingType) return;
     onSelectedPathChange(path);
   };
 
   const handleSelectRoot = () => {
+    // since focusing on input will trigger onSelect, we need to prevent it
+    if (editingType) return;
     onSelectedPathChange(undefined);
   };
 
@@ -116,7 +126,17 @@ function ResizablePanelLayout({
           <FolderTree
             node={exampleFolder}
             selectedPath={selectedPath}
+            nearestFolderPath={
+              selectedPath
+                ? getNearestFolderPathByPath(
+                    selectedPath,
+                    exampleFolder.children ?? [],
+                    "",
+                  )
+                : ""
+            }
             onSelect={handleSelect}
+            editingType={editingType}
           />
         </div>
       </Panel>

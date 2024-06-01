@@ -1,10 +1,12 @@
-import { ArrowRightIcon, ArrowDownIcon, DotIcon } from "@radix-ui/react-icons";
-import { useState } from "react";
+import { ArrowDownIcon, DotIcon } from "@radix-ui/react-icons";
+import { useCallback, useState } from "react";
 
 import { cn } from "@/lib/utils";
+import { useCreateNewNodeStore } from "@/stores/createNewNodeStore";
 import { type NodeType, type Node } from "@/types/node";
 
-import { Button } from "./ui/button";
+import FolderItem from "./folder-item";
+import { Input } from "./ui/input";
 
 function FolderTree({
   node,
@@ -13,6 +15,8 @@ function FolderTree({
   onSelect,
   currentPath = "",
   type = "folder",
+  editingType,
+  nearestFolderPath,
 }: {
   node: Node;
   selectedPath?: string;
@@ -20,10 +24,59 @@ function FolderTree({
   onSelect?: (path: string) => void;
   currentPath?: string;
   type?: NodeType;
+  editingType?: NodeType;
+  nearestFolderPath?: string;
 }) {
+  const onEditingTypeChange = useCreateNewNodeStore(
+    (state) => state.onEditingTypeChange,
+  );
+
   const [isFolded, setIsFolded] = useState(false);
 
-  const isFile = type === "file";
+  const [fileName, setFileName] = useState<string>("");
+
+  const renderInputArea = useCallback(() => {
+    const shouldRender = currentPath === nearestFolderPath && !!editingType;
+
+    if (!shouldRender) {
+      return null;
+    }
+
+    const editingFolder = editingType === "folder";
+
+    return (
+      <div
+        className="flex items-center gap-1"
+        style={{
+          paddingLeft: `${(level + 2) * 5}px`,
+        }}
+      >
+        <div className="size-6 p-1">
+          {editingFolder && <ArrowDownIcon className="size-3" />}
+          {!editingFolder && <DotIcon className="size-3" />}
+        </div>
+        <Input
+          className="h-5 p-1"
+          value={fileName}
+          onBlur={() => {
+            onEditingTypeChange(undefined);
+            setFileName("");
+            // TODO: save the new folder/file
+          }}
+          onChange={(e) => {
+            setFileName(e.target.value);
+          }}
+        ></Input>
+      </div>
+    );
+  }, [
+    currentPath,
+    editingType,
+    fileName,
+    level,
+    nearestFolderPath,
+    onEditingTypeChange,
+  ]);
 
   return (
     <ul
@@ -33,35 +86,19 @@ function FolderTree({
       className={cn(level === 0 && "pt-1")}
     >
       <li>
-        <div className="group flex items-center">
-          <Button
-            variant="ghost"
-            size="icon"
-            className={cn(isFile && "cursor-default", "size-6 p-1")}
-            onClick={isFile ? undefined : () => setIsFolded((prev) => !prev)}
-          >
-            {!isFile && isFolded && <ArrowRightIcon className="size-3" />}
-            {!isFile && !isFolded && <ArrowDownIcon className="size-3" />}
-            {isFile && <DotIcon className="size-3" />}
-          </Button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelect?.(currentPath);
-            }}
-            className={cn(
-              "w-full overflow-hidden text-ellipsis text-nowrap rounded-md px-2 text-left text-sm font-semibold transition group-hover:bg-blue-100 group-hover:text-gray-900",
-              {
-                "bg-blue-300 text-gray-700": currentPath === selectedPath,
-              },
-            )}
-          >
-            {node.name}
-          </button>
-        </div>
+        <FolderItem
+          type={type}
+          onSelect={onSelect}
+          currentPath={currentPath}
+          selectedPath={selectedPath}
+          nodeName={node.name}
+          folded={isFolded}
+          onFoldChange={setIsFolded}
+        />
 
         {node.children && !isFolded && (
           <ul>
+            <li>{renderInputArea()}</li>
             {node.children.map((child, index) => (
               <li key={child.name}>
                 <FolderTree
@@ -71,6 +108,8 @@ function FolderTree({
                   onSelect={onSelect}
                   type={child.type}
                   selectedPath={selectedPath}
+                  editingType={editingType}
+                  nearestFolderPath={nearestFolderPath}
                 />
               </li>
             ))}
