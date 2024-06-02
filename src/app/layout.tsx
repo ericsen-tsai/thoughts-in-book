@@ -8,6 +8,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { RESIZABLE_LAYOUT_COOKIE } from "@/constants/layout";
 import { cn } from "@/lib/utils";
 import { TRPCReactProvider } from "@/trpc/react";
+import { api } from "@/trpc/server";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -20,7 +21,7 @@ export const metadata = {
   icons: [{ rel: "icon", url: "/favicon.ico" }],
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children?: React.ReactNode;
@@ -30,6 +31,8 @@ export default function RootLayout({
   const defaultLayout: [number, number] | undefined = layout
     ? (JSON.parse(layout.value) as [number, number])
     : undefined;
+
+  const nestedFolder = await api.node.getNestedFolder();
 
   return (
     <html lang="en" suppressHydrationWarning>
@@ -46,7 +49,10 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <ResizablePanelLayout defaultLayout={defaultLayout}>
+            <ResizablePanelLayout
+              defaultLayout={defaultLayout}
+              folder={nestedFolder}
+            >
               <main className="flex h-screen flex-col items-center justify-center">
                 {children}
               </main>

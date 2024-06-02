@@ -10,11 +10,19 @@ type CreateNewNodeStore = {
   onEditingTypeChange: (type?: NodeType) => void;
 };
 
-export const useCreateNewNodeStore = create(
-  devtools<CreateNewNodeStore>((set) => ({
-    selectedPath: "",
-    onSelectedPathChange: (path?: string) => set({ selectedPath: path }),
-    editingType: undefined,
-    onEditingTypeChange: (type?: NodeType) => set({ editingType: type }),
-  })),
+export const useCreateNewNodeStore = create<
+  CreateNewNodeStore,
+  [["zustand/devtools", never]]
+>(
+  devtools(
+    (set) => ({
+      selectedPath: "",
+      onSelectedPathChange: (path?: string) => set({ selectedPath: path }),
+      editingType: undefined,
+      onEditingTypeChange: (type?: NodeType) => set({ editingType: type }),
+    }),
+    {
+      name: "create_new_node_store",
+    },
+  ),
 );

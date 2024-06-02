@@ -8,59 +8,22 @@ import { RESIZABLE_LAYOUT_COOKIE } from "@/constants/layout";
 import getNearestFolderPathByPath from "@/lib/getNearestFolderByPath";
 import { cn } from "@/lib/utils";
 import { useCreateNewNodeStore } from "@/stores/createNewNodeStore";
+import { api } from "@/trpc/react";
 import { type Node } from "@/types/node";
 
 import FolderTree from "./folder-tree";
 import { Button } from "./ui/button";
 
-const exampleFolder: Node = {
-  name: "",
-  type: "folder",
-  children: [
-    {
-      name: "src",
-      type: "folder",
-      children: [
-        { name: "index.js", type: "file" },
-        { name: "styles.css", type: "file" },
-      ],
-    },
-    {
-      name: "node_modules",
-      type: "folder",
-      children: [
-        {
-          name: "react-accessible-treeview",
-          type: "folder",
-          children: [{ name: "bundle.js", type: "file" }],
-        },
-        {
-          name: "react",
-          children: [{ name: "bundle.js", type: "file" }],
-          type: "folder",
-        },
-      ],
-    },
-    {
-      name: ".npmignore",
-      type: "file",
-    },
-    {
-      name: "package.json",
-      type: "file",
-    },
-    {
-      name: "webpack.config.js",
-      type: "file",
-    },
-  ],
-};
+export const dynamic = "force-dynamic";
+
 function ResizablePanelLayout({
   defaultLayout = [30, 70],
   children,
+  folder,
 }: {
   defaultLayout?: [number, number];
   children: React.ReactNode;
+  folder: Node;
 }) {
   const {
     selectedPath,
@@ -73,6 +36,10 @@ function ResizablePanelLayout({
     editingType: state.editingType,
     onEditingTypeChange: state.onEditingTypeChange,
   }));
+
+  const { data: nestedFolder } = api.node.getNestedFolder.useQuery(undefined, {
+    initialData: folder,
+  });
 
   const handleLayout = (sizes: number[]) => {
     setCookie(RESIZABLE_LAYOUT_COOKIE, JSON.stringify(sizes));
@@ -124,13 +91,13 @@ function ResizablePanelLayout({
           })}
         >
           <FolderTree
-            node={exampleFolder}
+            node={nestedFolder}
             selectedPath={selectedPath}
             nearestFolderPath={
               selectedPath
                 ? getNearestFolderPathByPath(
                     selectedPath,
-                    exampleFolder.children ?? [],
+                    nestedFolder.children ?? [],
                     "",
                   )
                 : ""

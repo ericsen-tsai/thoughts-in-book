@@ -13,6 +13,7 @@ const config = {
   ],
   rules: {
     "import/no-unresolved": "error",
+    "react-hooks/exhaustive-deps": "error",
     "@typescript-eslint/array-type": "off",
     "@typescript-eslint/consistent-type-definitions": "off",
     "@typescript-eslint/consistent-type-imports": [

@@ -1,3 +1,5 @@
+"use client";
+
 import { ArrowRightIcon, ArrowDownIcon, DotIcon } from "@radix-ui/react-icons";
 import { useCallback, useState } from "react";
 
@@ -17,6 +19,8 @@ type Props = {
   nodeName: string;
   folded: boolean;
   onFoldChange: (folded: boolean) => void;
+  onDelete: () => void;
+  onUpdate: (name: string) => void;
 };
 
 function FolderItem({
@@ -27,14 +31,14 @@ function FolderItem({
   nodeName,
   folded,
   onFoldChange,
+  onDelete,
+  onUpdate,
 }: Props) {
   const isFile = type === "file";
 
   const [isEditing, setIsEditing] = useState(false);
 
   const [name, setName] = useState(nodeName);
-
-  console.log({ name });
 
   const renderIcon = useCallback(() => {
     if (!isFile && folded) {
@@ -57,7 +61,9 @@ function FolderItem({
           }}
           onBlur={() => {
             setIsEditing(false);
-            // TODO update
+            if (name !== nodeName && !!name) {
+              onUpdate(name);
+            }
           }}
         />
       );
@@ -76,10 +82,18 @@ function FolderItem({
           },
         )}
       >
-        {name}
+        {!!currentPath ? name : ""}
       </button>
     );
-  }, [currentPath, isEditing, name, nodeName, onSelect, selectedPath]);
+  }, [
+    currentPath,
+    isEditing,
+    name,
+    nodeName,
+    onSelect,
+    onUpdate,
+    selectedPath,
+  ]);
 
   return (
     <ContextMenu>
@@ -95,10 +109,7 @@ function FolderItem({
         {renderItem()}
         <EditDeleteContextMenu
           onEdit={() => setIsEditing(true)}
-          onDelete={() => {
-            // TODO delete
-            console.log("delete");
-          }}
+          onDelete={onDelete}
         />
       </ContextMenuTrigger>
     </ContextMenu>

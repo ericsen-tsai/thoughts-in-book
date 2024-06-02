@@ -3,6 +3,7 @@ export type NodeType = "folder" | "file";
 export type Node = {
   name: string;
   type: NodeType;
+  id: number;
   children?: Node[];
 };
 

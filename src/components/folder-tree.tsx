@@ -1,8 +1,11 @@
+"use client";
+
 import { ArrowDownIcon, DotIcon } from "@radix-ui/react-icons";
-import { useCallback, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
 import { useCreateNewNodeStore } from "@/stores/createNewNodeStore";
+import { api } from "@/trpc/react";
 import { type NodeType, type Node } from "@/types/node";
 
 import FolderItem from "./folder-item";
@@ -31,11 +34,47 @@ function FolderTree({
     (state) => state.onEditingTypeChange,
   );
 
+  const [localNode, setLocalNode] = useState<Node>(node);
+
+  const utils = api.useUtils();
+  const { isSuccess: isGetNestedFolderSuccess } =
+    api.node.getNestedFolder.useQuery();
+
+  const { mutate: insertNode } = api.node.insert.useMutation({
+    onSuccess: async () => {
+      void utils.node.invalidate();
+    },
+  });
+
+  const {
+    mutate: deleteNode,
+    isPending,
+    isSuccess,
+  } = api.node.delete.useMutation({
+    onSuccess: () => {
+      void utils.node.getNestedFolder.invalidate();
+    },
+  });
+
+  const { mutate: updateNode } = api.node.update.useMutation({
+    onSuccess: () => {
+      void utils.node.getNestedFolder.invalidate();
+    },
+  });
+
+  const isOptimizedDeleting = isPending || isSuccess;
+
+  useEffect(() => {
+    if (isGetNestedFolderSuccess) {
+      setLocalNode(node);
+    }
+  }, [isGetNestedFolderSuccess, node]);
+
   const [isFolded, setIsFolded] = useState(false);
 
   const [fileName, setFileName] = useState<string>("");
 
-  const renderInputArea = useCallback(() => {
+  const renderInputArea = () => {
     const shouldRender = currentPath === nearestFolderPath && !!editingType;
 
     if (!shouldRender) {
@@ -60,8 +99,26 @@ function FolderTree({
           value={fileName}
           onBlur={() => {
             onEditingTypeChange(undefined);
+            if (fileName) {
+              setLocalNode({
+                ...localNode,
+                children: [
+                  ...(localNode.children ?? []),
+                  {
+                    name: fileName,
+                    type: editingType,
+                    id: +Math.random().toString(36).substring(7),
+                  },
+                ],
+              });
+              insertNode({
+                name: fileName,
+                type: editingType,
+                parentId: node.id,
+              });
+            }
+
             setFileName("");
-            // TODO: save the new folder/file
           }}
           onChange={(e) => {
             setFileName(e.target.value);
@@ -69,14 +126,11 @@ function FolderTree({
         ></Input>
       </div>
     );
-  }, [
-    currentPath,
-    editingType,
-    fileName,
-    level,
-    nearestFolderPath,
-    onEditingTypeChange,
-  ]);
+  };
+
+  if (isOptimizedDeleting) {
+    return null;
+  }
 
   return (
     <ul
@@ -85,37 +139,41 @@ function FolderTree({
       }}
       className={cn(level === 0 && "pt-1")}
     >
-      <li>
-        <FolderItem
-          type={type}
-          onSelect={onSelect}
-          currentPath={currentPath}
-          selectedPath={selectedPath}
-          nodeName={node.name}
-          folded={isFolded}
-          onFoldChange={setIsFolded}
-        />
+      {
+        <li>
+          <FolderItem
+            type={type}
+            onSelect={onSelect}
+            currentPath={currentPath}
+            selectedPath={selectedPath}
+            nodeName={node.name}
+            folded={isFolded}
+            onFoldChange={setIsFolded}
+            onDelete={() => deleteNode({ id: node.id })}
+            onUpdate={(name: string) => updateNode({ name, type, id: node.id })}
+          />
 
-        {node.children && !isFolded && (
-          <ul>
-            <li>{renderInputArea()}</li>
-            {node.children.map((child, index) => (
-              <li key={child.name}>
-                <FolderTree
-                  node={child}
-                  level={level + 1}
-                  currentPath={`${currentPath}${level === 0 ? "" : ".children."}${index}`}
-                  onSelect={onSelect}
-                  type={child.type}
-                  selectedPath={selectedPath}
-                  editingType={editingType}
-                  nearestFolderPath={nearestFolderPath}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-      </li>
+          {!isFolded && (
+            <ul>
+              <li>{renderInputArea()}</li>
+              {(localNode.children ?? []).map((child, index) => (
+                <li key={child.name}>
+                  <FolderTree
+                    node={child}
+                    level={level + 1}
+                    currentPath={`${currentPath}${level === 0 ? "" : ".children."}${index}`}
+                    onSelect={onSelect}
+                    type={child.type}
+                    selectedPath={selectedPath}
+                    editingType={editingType}
+                    nearestFolderPath={nearestFolderPath}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
+        </li>
+      }
     </ul>
   );
 }
