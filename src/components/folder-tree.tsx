@@ -3,6 +3,7 @@
 import { ArrowDownIcon, DotIcon } from "@radix-ui/react-icons";
 import { useEffect, useState } from "react";
 
+import { ROOT_ID } from "@/constants/nodeId";
 import { cn } from "@/lib/utils";
 import { useCreateNewNodeStore } from "@/stores/createNewNodeStore";
 import { api } from "@/trpc/react";
@@ -83,6 +84,30 @@ function FolderTree({
 
     const editingFolder = editingType === "folder";
 
+    const onNodeInputConfirm = () => {
+      onEditingTypeChange(undefined);
+      if (fileName) {
+        setLocalNode({
+          ...localNode,
+          children: [
+            ...(localNode.children ?? []),
+            {
+              name: fileName,
+              type: editingType,
+              id: +Math.random().toString(36).substring(7),
+            },
+          ],
+        });
+        insertNode({
+          name: fileName,
+          type: editingType,
+          parentId: node.id,
+        });
+      }
+
+      setFileName("");
+    };
+
     return (
       <div
         className="flex items-center gap-1"
@@ -97,28 +122,11 @@ function FolderTree({
         <Input
           className="h-5 p-1"
           value={fileName}
-          onBlur={() => {
-            onEditingTypeChange(undefined);
-            if (fileName) {
-              setLocalNode({
-                ...localNode,
-                children: [
-                  ...(localNode.children ?? []),
-                  {
-                    name: fileName,
-                    type: editingType,
-                    id: +Math.random().toString(36).substring(7),
-                  },
-                ],
-              });
-              insertNode({
-                name: fileName,
-                type: editingType,
-                parentId: node.id,
-              });
+          onBlur={() => onNodeInputConfirm()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              onNodeInputConfirm();
             }
-
-            setFileName("");
           }}
           onChange={(e) => {
             setFileName(e.target.value);
@@ -151,6 +159,7 @@ function FolderTree({
             onFoldChange={setIsFolded}
             onDelete={() => deleteNode({ id: node.id })}
             onUpdate={(name: string) => updateNode({ name, type, id: node.id })}
+            isRoot={node.id === ROOT_ID}
           />
 
           {!isFolded && (

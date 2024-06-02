@@ -1,15 +1,15 @@
 "use client";
 
 import { ArrowRightIcon, ArrowDownIcon, DotIcon } from "@radix-ui/react-icons";
-import { useCallback, useState } from "react";
+import { useCallback, useRef, useState } from "react";
 
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { cn } from "@/lib/utils";
 import { type NodeType } from "@/types/node";
 
 import EditDeleteContextMenu from "./edit-delete-context-menu";
+import FolderFileInput from "./folder-item-input";
 import { Button } from "./ui/button";
-import { Input } from "./ui/input";
 
 type Props = {
   type: NodeType;
@@ -21,6 +21,7 @@ type Props = {
   onFoldChange: (folded: boolean) => void;
   onDelete: () => void;
   onUpdate: (name: string) => void;
+  isRoot?: boolean;
 };
 
 function FolderItem({
@@ -33,12 +34,14 @@ function FolderItem({
   onFoldChange,
   onDelete,
   onUpdate,
+  isRoot,
 }: Props) {
   const isFile = type === "file";
 
   const [isEditing, setIsEditing] = useState(false);
 
   const [name, setName] = useState(nodeName);
+  const inputRef = useRef<HTMLInputElement>(null);
 
   const renderIcon = useCallback(() => {
     if (!isFile && folded) {
@@ -51,43 +54,48 @@ function FolderItem({
   }, [folded, isFile]);
 
   const renderItem = useCallback(() => {
-    if (isEditing) {
-      return (
-        <Input
-          className="h-5 p-1"
-          value={name}
-          onChange={(e) => {
-            setName(e.target.value);
-          }}
-          onBlur={() => {
-            setIsEditing(false);
-            if (name !== nodeName && !!name) {
-              onUpdate(name);
-            }
-          }}
-        />
-      );
-    }
+    const onEditConfirm = () => {
+      setIsEditing(false);
+      if (name === nodeName) return;
+      if (!name) {
+        setName(nodeName);
+        return;
+      }
+      onUpdate(name);
+    };
 
     return (
-      <button
-        onClick={(e) => {
-          e.stopPropagation();
-          onSelect?.(currentPath);
-        }}
-        className={cn(
-          "w-full overflow-hidden text-ellipsis text-nowrap rounded-md px-2 text-left text-sm font-semibold transition group-hover:bg-blue-100 group-hover:text-gray-900",
-          {
-            "bg-blue-300 text-gray-700": currentPath === selectedPath,
-          },
-        )}
-      >
-        {!!currentPath ? name : ""}
-      </button>
+      <>
+        <FolderFileInput
+          name={name}
+          onNameChange={(val: string) => {
+            setName(val);
+          }}
+          onEditConfirm={onEditConfirm}
+          className={cn(!isEditing && "hidden")}
+          ref={inputRef}
+        />
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onSelect?.(currentPath);
+          }}
+          className={cn(
+            "w-full overflow-hidden text-ellipsis text-nowrap rounded-md px-2 text-left text-sm font-semibold transition group-hover:bg-blue-100 group-hover:text-gray-900",
+            {
+              "bg-blue-300 text-gray-700": currentPath === selectedPath,
+              hidden: isEditing,
+            },
+          )}
+        >
+          {!isRoot ? name : ""}
+        </button>
+      </>
     );
   }, [
     currentPath,
     isEditing,
+    isRoot,
     name,
     nodeName,
     onSelect,
@@ -107,10 +115,18 @@ function FolderItem({
           {renderIcon()}
         </Button>
         {renderItem()}
-        <EditDeleteContextMenu
-          onEdit={() => setIsEditing(true)}
-          onDelete={onDelete}
-        />
+        {!isRoot && (
+          <EditDeleteContextMenu
+            onEdit={() => {
+              setIsEditing(true);
+              setTimeout(() => {
+                inputRef.current?.focus();
+                console.log(inputRef.current);
+              }, 0);
+            }}
+            onDelete={onDelete}
+          />
+        )}
       </ContextMenuTrigger>
     </ContextMenu>
   );

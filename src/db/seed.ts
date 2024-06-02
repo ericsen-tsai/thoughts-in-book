@@ -1,17 +1,12 @@
+import { ROOT_ID } from "@/constants/nodeId";
 import { type Node } from "@/types/node";
 
 import { children, nodes } from "./schema";
 
 import { db } from ".";
 
-let idCounter = 0;
-const generateId = () => {
-  idCounter += 1;
-  return idCounter;
-};
-
 const rootFolder: Node = {
-  id: generateId(),
+  id: ROOT_ID,
   name: "root",
   type: "folder",
 };

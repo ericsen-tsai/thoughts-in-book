@@ -13,8 +13,20 @@ type Props = {
 function EditDeleteContextMenu({ onEdit, onDelete }: Props) {
   return (
     <ContextMenuContent className="w-12">
-      <ContextMenuItem onClick={onEdit}>Edit</ContextMenuItem>
-      <ContextMenuItem onClick={onDelete}>Delete</ContextMenuItem>
+      <ContextMenuItem
+        onClick={() => {
+          onEdit();
+        }}
+      >
+        Edit
+      </ContextMenuItem>
+      <ContextMenuItem
+        onClick={() => {
+          onDelete();
+        }}
+      >
+        Delete
+      </ContextMenuItem>
     </ContextMenuContent>
   );
 }

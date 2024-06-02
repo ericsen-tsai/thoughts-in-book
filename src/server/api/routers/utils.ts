@@ -1,10 +1,9 @@
 import { eq } from "drizzle-orm";
 
+import { ROOT_ID } from "@/constants/nodeId";
 import { db } from "@/db";
-import { children, nodes } from "@/db/schema";
+import { children, fileContents, nodes } from "@/db/schema";
 import { type Node, type NodeType } from "@/types/node";
-
-const ROOT_ID = 1;
 
 const getNode = async (id: number) => {
   const node = await db
@@ -81,6 +80,14 @@ export const insertNode = async ({
     parentId,
     childId: nodeId,
   });
+
+  if (type === "file") {
+    await db.insert(fileContents).values({
+      nodeId,
+      content: "",
+    });
+  }
+
   return { id: nodeId, name, type, parentId };
 };
 
@@ -106,5 +113,6 @@ export const deleteNode = async ({ id }: { id: number }) => {
 
   await db.delete(children).where(eq(children.childId, id)).execute();
   await db.delete(children).where(eq(children.parentId, id)).execute();
+  await db.delete(fileContents).where(eq(fileContents.nodeId, id)).execute();
   await db.delete(nodes).where(eq(nodes.id, id)).execute();
 };

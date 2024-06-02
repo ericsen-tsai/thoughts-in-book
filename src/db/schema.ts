@@ -1,4 +1,4 @@
-import { serial, varchar, integer, pgTable } from "drizzle-orm/pg-core";
+import { serial, varchar, integer, pgTable, text } from "drizzle-orm/pg-core";
 
 export const nodes = pgTable("nodes", {
   id: serial("id").primaryKey(),
@@ -13,4 +13,11 @@ export const children = pgTable("children", {
   childId: integer("child_id")
     .notNull()
     .references(() => nodes.id),
+});
+
+export const fileContents = pgTable("file_contents", {
+  nodeId: integer("node_id")
+    .primaryKey()
+    .references(() => nodes.id),
+  content: text("content").notNull(),
 });
