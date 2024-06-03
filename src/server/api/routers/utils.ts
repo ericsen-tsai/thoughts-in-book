@@ -116,3 +116,19 @@ export const deleteNode = async ({ id }: { id: number }) => {
   await db.delete(fileContents).where(eq(fileContents.nodeId, id)).execute();
   await db.delete(nodes).where(eq(nodes.id, id)).execute();
 };
+
+export const updateFileContent = async ({
+  nodeId,
+  content,
+}: {
+  nodeId: number;
+  content: string;
+}) => {
+  await db
+    .update(fileContents)
+    .set({ content })
+    .where(eq(fileContents.nodeId, nodeId))
+    .execute();
+
+  return { nodeId, content };
+};

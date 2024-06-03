@@ -1,5 +1,6 @@
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 
+import { fileContentRouter } from "./routers/file-content";
 import { nodeRouter } from "./routers/node";
 
 /**
@@ -9,6 +10,7 @@ import { nodeRouter } from "./routers/node";
  */
 export const appRouter = createTRPCRouter({
   node: nodeRouter,
+  fileContent: fileContentRouter,
 });
 
 // export type definition of API
