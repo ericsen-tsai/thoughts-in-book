@@ -1,16 +1,27 @@
 "use client";
 
 import { ArrowDownIcon, DotIcon } from "@radix-ui/react-icons";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ROOT_ID } from "@/constants/nodeId";
 import { cn } from "@/lib/utils";
-import { useCreateNewNodeStore } from "@/stores/createNewNodeStore";
 import { api } from "@/trpc/react";
 import { type NodeType, type Node } from "@/types/node";
 
 import FolderItem from "./folder-item";
 import { Input } from "./ui/input";
+
+type Props = {
+  node: Node;
+  selectedPath?: string;
+  level?: number;
+  onSelect?: (path: string) => void;
+  currentPath?: string;
+  type?: NodeType;
+  editingType?: NodeType;
+  nearestFolderPath?: string;
+  onEditingTypeChange: (type: NodeType | undefined) => void;
+};
 
 function FolderTree({
   node,
@@ -21,21 +32,11 @@ function FolderTree({
   type = "folder",
   editingType,
   nearestFolderPath,
-}: {
-  node: Node;
-  selectedPath?: string;
-  level?: number;
-  onSelect?: (path: string) => void;
-  currentPath?: string;
-  type?: NodeType;
-  editingType?: NodeType;
-  nearestFolderPath?: string;
-}) {
-  const onEditingTypeChange = useCreateNewNodeStore(
-    (state) => state.onEditingTypeChange,
-  );
-
+  onEditingTypeChange,
+}: Props) {
   const [localNode, setLocalNode] = useState<Node>(node);
+  const [isFolded, setIsFolded] = useState(false);
+  const [fileName, setFileName] = useState<string>("");
 
   const utils = api.useUtils();
   const { isSuccess: isGetNestedFolderSuccess } =
@@ -63,24 +64,32 @@ function FolderTree({
     },
   });
 
-  const isOptimizedDeleting = isPending || isSuccess;
-
   useEffect(() => {
     if (isGetNestedFolderSuccess) {
       setLocalNode(node);
     }
   }, [isGetNestedFolderSuccess, node]);
 
-  const [isFolded, setIsFolded] = useState(false);
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  const [fileName, setFileName] = useState<string>("");
+  const shouldRenderInputArea = useMemo(() => {
+    return currentPath === nearestFolderPath && !!editingType;
+  }, [currentPath, editingType, nearestFolderPath]);
 
-  const renderInputArea = () => {
-    const shouldRender = currentPath === nearestFolderPath && !!editingType;
+  useEffect(() => {
+    if (shouldRenderInputArea) {
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
+    }
+  }, [shouldRenderInputArea]);
 
-    if (!shouldRender) {
+  const renderInputArea = useCallback(() => {
+    if (!shouldRenderInputArea) {
       return null;
     }
+
+    if (!editingType) return null;
 
     const editingFolder = editingType === "folder";
 
@@ -131,10 +140,22 @@ function FolderTree({
           onChange={(e) => {
             setFileName(e.target.value);
           }}
-        ></Input>
+          ref={inputRef}
+        />
       </div>
     );
-  };
+  }, [
+    editingType,
+    fileName,
+    insertNode,
+    level,
+    localNode,
+    node.id,
+    onEditingTypeChange,
+    shouldRenderInputArea,
+  ]);
+
+  const isOptimizedDeleting = isPending || isSuccess;
 
   if (isOptimizedDeleting) {
     return null;
@@ -164,7 +185,6 @@ function FolderTree({
 
           {!isFolded && (
             <ul>
-              <li>{renderInputArea()}</li>
               {(localNode.children ?? []).map((child, index) => (
                 <li key={child.name}>
                   <FolderTree
@@ -176,9 +196,11 @@ function FolderTree({
                     selectedPath={selectedPath}
                     editingType={editingType}
                     nearestFolderPath={nearestFolderPath}
+                    onEditingTypeChange={onEditingTypeChange}
                   />
                 </li>
               ))}
+              <li>{renderInputArea()}</li>
             </ul>
           )}
         </li>

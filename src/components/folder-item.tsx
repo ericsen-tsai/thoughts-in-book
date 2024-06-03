@@ -66,30 +66,34 @@ function FolderItem({
 
     return (
       <>
-        <FolderFileInput
-          name={name}
-          onNameChange={(val: string) => {
-            setName(val);
-          }}
-          onEditConfirm={onEditConfirm}
-          className={cn(!isEditing && "hidden")}
-          ref={inputRef}
-        />
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onSelect?.(currentPath);
-          }}
-          className={cn(
-            "w-full overflow-hidden text-ellipsis text-nowrap rounded-md px-2 text-left text-sm font-semibold transition group-hover:bg-blue-100 group-hover:text-gray-900",
-            {
-              "bg-blue-300 text-gray-700": currentPath === selectedPath,
-              hidden: isEditing,
-            },
-          )}
-        >
-          {!isRoot ? name : ""}
-        </button>
+        {!isEditing && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onSelect?.(currentPath);
+            }}
+            className={cn(
+              "w-full overflow-hidden text-ellipsis text-nowrap rounded-md px-2 text-left text-sm font-normal transition group-hover:bg-blue-100 group-hover:text-gray-900",
+              {
+                "bg-blue-300 font-semibold text-gray-700":
+                  currentPath === selectedPath,
+                hidden: isEditing,
+              },
+            )}
+          >
+            {!isRoot ? name : ""}
+          </button>
+        )}
+        {isEditing && (
+          <FolderFileInput
+            name={name}
+            onNameChange={(val: string) => {
+              setName(val);
+            }}
+            onEditConfirm={onEditConfirm}
+            ref={inputRef}
+          />
+        )}
       </>
     );
   }, [
@@ -121,7 +125,6 @@ function FolderItem({
               setIsEditing(true);
               setTimeout(() => {
                 inputRef.current?.focus();
-                console.log(inputRef.current);
               }, 0);
             }}
             onDelete={onDelete}

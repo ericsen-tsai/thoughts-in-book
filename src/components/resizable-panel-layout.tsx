@@ -2,6 +2,7 @@
 
 import { FilePlusIcon, ArchiveIcon } from "@radix-ui/react-icons";
 import { setCookie } from "cookies-next";
+import { useMemo } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 import { RESIZABLE_LAYOUT_COOKIE } from "@/constants/layout";
@@ -16,15 +17,17 @@ import { Button } from "./ui/button";
 
 export const dynamic = "force-dynamic";
 
+type Props = {
+  defaultLayout?: [number, number];
+  children: React.ReactNode;
+  folder: Node;
+};
+
 function ResizablePanelLayout({
   defaultLayout = [30, 70],
   children,
   folder,
-}: {
-  defaultLayout?: [number, number];
-  children: React.ReactNode;
-  folder: Node;
-}) {
+}: Props) {
   const {
     selectedPath,
     onSelectedPathChange,
@@ -61,6 +64,18 @@ function ResizablePanelLayout({
     onEditingTypeChange(type);
   };
 
+  const nearestFolderPath = useMemo(
+    () =>
+      selectedPath
+        ? getNearestFolderPathByPath(
+            selectedPath,
+            nestedFolder.children ?? [],
+            "",
+          )
+        : "",
+    [nestedFolder.children, selectedPath],
+  );
+
   return (
     <PanelGroup direction="horizontal" onLayout={handleLayout}>
       <Panel defaultSize={defaultLayout[0]} minSize={20} className="relative">
@@ -93,17 +108,10 @@ function ResizablePanelLayout({
           <FolderTree
             node={nestedFolder}
             selectedPath={selectedPath}
-            nearestFolderPath={
-              selectedPath
-                ? getNearestFolderPathByPath(
-                    selectedPath,
-                    nestedFolder.children ?? [],
-                    "",
-                  )
-                : ""
-            }
+            nearestFolderPath={nearestFolderPath}
             onSelect={handleSelect}
             editingType={editingType}
+            onEditingTypeChange={onEditingTypeChange}
           />
         </div>
       </Panel>
