@@ -10,6 +10,7 @@ import { type NodeType, type Node } from "@/types/node";
 
 import FolderItem from "./folder-item";
 import { Input } from "./ui/input";
+import { useToast } from "./ui/use-toast";
 
 type Props = {
   node: Node;
@@ -42,9 +43,14 @@ function FolderTree({
   const { isSuccess: isGetNestedFolderSuccess } =
     api.node.getNestedFolder.useQuery();
 
+  const { toast } = useToast();
+
   const { mutate: insertNode } = api.node.insert.useMutation({
-    onSuccess: async () => {
+    onSuccess: async (node) => {
       void utils.node.invalidate();
+      toast({
+        title: `${node.type.slice(0, 1).toUpperCase()}${node.type.slice(1)} created`,
+      });
     },
   });
 
@@ -55,12 +61,18 @@ function FolderTree({
   } = api.node.delete.useMutation({
     onSuccess: () => {
       void utils.node.getNestedFolder.invalidate();
+      toast({
+        title: `deleted`,
+      });
     },
   });
 
   const { mutate: updateNode } = api.node.update.useMutation({
-    onSuccess: () => {
+    onSuccess: (node) => {
       void utils.node.getNestedFolder.invalidate();
+      toast({
+        title: `${node.type.slice(0, 1).toUpperCase()}${node.type.slice(1)} updated`,
+      });
     },
   });
 

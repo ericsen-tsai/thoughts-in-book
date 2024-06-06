@@ -7,6 +7,7 @@ import remarkGfm from "remark-gfm";
 
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
+import { useToast } from "./ui/use-toast";
 
 function MarkdownPanel() {
   const [mode, setMode] = useState<"edit" | "preview">("edit");
@@ -14,13 +15,24 @@ function MarkdownPanel() {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   const [value, setValue] = useState<string>("");
+  const { toast } = useToast();
 
-  const handleToggleMode = useCallback((event: KeyboardEvent) => {
-    // check if the Shift key && command Key and M are pressed
-    if (event.shiftKey && event.metaKey && event.key === "m") {
-      setMode((prev) => (prev === "edit" ? "preview" : "edit"));
-    }
-  }, []);
+  const handleToggleMode = useCallback(
+    (event: KeyboardEvent) => {
+      // check if the Shift key && command Key and M are pressed
+      if (event.shiftKey && event.metaKey && event.key === "m") {
+        const nextMode = mode === "edit" ? "preview" : "edit";
+        setMode(nextMode);
+        toast({
+          title: `Switched to ${nextMode} mode`,
+          description: `Press "Shift + Command + M" to switch back to ${
+            nextMode === "edit" ? "preview" : "edit"
+          } mode`,
+        });
+      }
+    },
+    [toast, mode],
+  );
 
   useEffect(() => {
     if (mode === "edit") {
@@ -40,14 +52,14 @@ function MarkdownPanel() {
   const renderMarkdownSection = useCallback(() => {
     if (mode === "preview") {
       return (
-        <div className="prose lg:prose-xl prose-slate dark:prose-invert">
+        <div className="prose prose-slate dark:prose-invert lg:prose-xl">
           <Markdown remarkPlugins={[remarkGfm]}>{value}</Markdown>
         </div>
       );
     }
     return (
       <Textarea
-        placeholder="Type your message here."
+        placeholder="Type your thoughts here."
         value={value}
         onChange={(e) => setValue(e.target.value)}
         className="h-full w-full"
@@ -66,8 +78,8 @@ function MarkdownPanel() {
     <div className="container h-full py-8">
       <div className="absolute right-0 top-1 flex gap-2 pr-2">
         <Button
-          variant={"ghost"}
-          className="size-6 px-1 py-0"
+          variant={mode === "edit" ? "default" : "ghost"}
+          className={"size-6 px-1 py-0"}
           onClick={() => {
             setMode("edit");
           }}
@@ -75,7 +87,7 @@ function MarkdownPanel() {
           <Pencil1Icon className="size-3" />
         </Button>
         <Button
-          variant={"ghost"}
+          variant={mode === "edit" ? "ghost" : "default"}
           className="size-6 px-1 py-0"
           onClick={() => {
             setMode("preview");
