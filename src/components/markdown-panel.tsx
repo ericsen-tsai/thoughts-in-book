@@ -32,6 +32,9 @@ type Props = {
 
 function MarkdownPanel({ fileId, defaultFileContent, defaultMode }: Props) {
   const [mode, setMode] = useState<Mode>(defaultMode ?? "edit");
+  const [pasteCursorPosition, setPasteCursorPosition] = useState<number | null>(
+    null,
+  );
   const { data: fileContent } = api.fileContent.get.useQuery(+(fileId ?? 0), {
     enabled: !!fileId,
     initialData: defaultFileContent,
@@ -47,7 +50,7 @@ function MarkdownPanel({ fileId, defaultFileContent, defaultMode }: Props) {
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
-    debouncedCallback({ nodeId: +(fileId ?? 0), content: value });
+    debouncedCallback({ nodeId: +(fileId ?? 0), content: value.trim() });
   }, [value, fileId, debouncedCallback]);
 
   const { toast } = useToast();
@@ -93,15 +96,30 @@ function MarkdownPanel({ fileId, defaultFileContent, defaultMode }: Props) {
   }, [handleToggleMode]);
 
   const insertImageMarkdown = (url: string) => {
+    if (!textAreaRef.current) return;
+    const textAreaCursorPosition = textAreaRef.current.selectionStart;
     const imageMarkdown = `![Image](${url})`;
-    setValue((prevValue) => prevValue + "\n" + imageMarkdown);
+    setValue((prevValue) => {
+      const newValue = `${prevValue.slice(0, textAreaCursorPosition)}${imageMarkdown}${prevValue.slice(textAreaCursorPosition)}`;
+      return newValue;
+    });
+    setPasteCursorPosition(textAreaCursorPosition + imageMarkdown.length);
   };
+
+  useEffect(() => {
+    if (pasteCursorPosition !== null && textAreaRef.current) {
+      textAreaRef.current.setSelectionRange(
+        pasteCursorPosition,
+        pasteCursorPosition,
+      );
+      setPasteCursorPosition(null);
+    }
+  }, [pasteCursorPosition]);
 
   const uploadImage = async (file: File) => {
     const res = await uploadFiles("imageUploader", {
       files: [file],
     });
-    console.log({ res });
     return res[0]?.serverData.fileUrl;
   };
 
@@ -111,7 +129,6 @@ function MarkdownPanel({ fileId, defaultFileContent, defaultMode }: Props) {
       const items = clipboardData.items;
 
       for (const item of items) {
-        console.log({ item });
         if (item.type.indexOf("image") === -1) continue;
         const file = item.getAsFile();
         if (!file) continue;
@@ -137,15 +154,18 @@ function MarkdownPanel({ fileId, defaultFileContent, defaultMode }: Props) {
       <Textarea
         placeholder="Type your thoughts here."
         value={value}
-        onChange={(e) => setValue(e.target.value)}
+        onChange={(e) => {
+          setValue(e.target.value);
+          setPasteCursorPosition(null);
+        }}
         className="h-full w-full"
         ref={textAreaRef}
-        onFocus={(e) =>
+        onFocus={(e) => {
           e.currentTarget.setSelectionRange(
             e.currentTarget.value.length,
             e.currentTarget.value.length,
-          )
-        }
+          );
+        }}
         disabled={isRouteChanging}
         onPaste={handlePaste}
       />
