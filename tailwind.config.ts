@@ -77,6 +77,33 @@ const config = {
       fontFamily: {
         sans: ["var(--font-sans)", ...fontFamily.sans],
       },
+      typography: {
+        DEFAULT: {
+          css: {
+            "> :first-child": { marginTop: "0" },
+            "> :last-child": { marginBottom: "0" },
+            "&:first-child > :first-child": {
+              marginTop: "0",
+            },
+            "&:last-child > :last-child": {
+              marginBottom: "0",
+            },
+            "h1 + *": {
+              marginTop: "0",
+            },
+            "ul + *": {
+              marginTop: "0",
+            },
+            "ol + *": {
+              marginTop: "0",
+            },
+            hr: {
+              marginTop: "1.25rem",
+              marginBottom: "1.25rem",
+            },
+          },
+        },
+      },
     },
   },
   plugins: [require("tailwindcss-animate"), require("@tailwindcss/typography")],

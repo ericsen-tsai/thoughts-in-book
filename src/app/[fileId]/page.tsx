@@ -1,7 +1,10 @@
+import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 
 import MarkdownPanel from "@/components/markdown-panel";
+import { MODE_COOKIE } from "@/constants/mode";
 import { api } from "@/trpc/server";
+import { type Mode } from "@/types/mode";
 
 type Props = {
   params: {
@@ -16,6 +19,12 @@ async function Page({ params }: Props) {
     api.node.getFoldersAndFiles(),
   ]);
 
+  const mode = cookies().get(MODE_COOKIE);
+
+  const defaultMode: Mode | undefined = mode
+    ? (JSON.parse(mode.value) as Mode)
+    : undefined;
+
   if (
     foldersOrFiles.find(
       (node) => node.id === +fileId && node.type === "file",
@@ -24,7 +33,13 @@ async function Page({ params }: Props) {
     notFound();
   }
 
-  return <MarkdownPanel fileId={fileId} fileContent={fileContent} />;
+  return (
+    <MarkdownPanel
+      fileId={fileId}
+      fileContent={fileContent}
+      defaultMode={defaultMode}
+    />
+  );
 }
 
 export default Page;

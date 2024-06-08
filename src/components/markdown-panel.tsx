@@ -1,13 +1,16 @@
 "use client";
 
 import { Pencil1Icon, EyeOpenIcon } from "@radix-ui/react-icons";
+import { setCookie } from "cookies-next";
 import { useCallback, useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+import { MODE_COOKIE } from "@/constants/mode";
 import { useRouteTransitionContext } from "@/contexts/route-transition-context";
 import useDebounce from "@/hooks/useDebounce";
 import { api } from "@/trpc/react";
+import { type Mode } from "@/types/mode";
 
 import TooltipCompound from "./tooltip-compound";
 import { Button } from "./ui/button";
@@ -17,10 +20,15 @@ import { useToast } from "./ui/use-toast";
 type Props = {
   fileId?: string;
   fileContent?: string;
+  defaultMode?: Mode;
 };
 
-function MarkdownPanel({ fileId, fileContent: initialFileContent }: Props) {
-  const [mode, setMode] = useState<"edit" | "preview">("edit");
+function MarkdownPanel({
+  fileId,
+  fileContent: initialFileContent,
+  defaultMode,
+}: Props) {
+  const [mode, setMode] = useState<Mode>(defaultMode ?? "edit");
   const { data: fileContent } = api.fileContent.get.useQuery(+(fileId ?? 0), {
     enabled: !!fileId,
     initialData: initialFileContent,
@@ -41,14 +49,16 @@ function MarkdownPanel({ fileId, fileContent: initialFileContent }: Props) {
 
   const { toast } = useToast();
 
-  const showModeChangeHintToast = useCallback(
-    (mode: "edit" | "preview") => {
+  const handleModeChange = useCallback(
+    (mode: Mode) => {
+      setMode(mode);
       toast({
         title: `Switched to ${mode} mode`,
         description: `Press "Shift + Command + M" to switch back to ${
           mode === "edit" ? "preview" : "edit"
         } mode`,
       });
+      setCookie(MODE_COOKIE, JSON.stringify(mode));
     },
     [toast],
   );
@@ -58,11 +68,10 @@ function MarkdownPanel({ fileId, fileContent: initialFileContent }: Props) {
       // check if the Shift key && command Key and M are pressed
       if (event.shiftKey && event.metaKey && event.key === "m") {
         const nextMode = mode === "edit" ? "preview" : "edit";
-        setMode(nextMode);
-        showModeChangeHintToast(nextMode);
+        handleModeChange(nextMode);
       }
     },
-    [mode, showModeChangeHintToast],
+    [mode, handleModeChange],
   );
 
   useEffect(() => {
@@ -114,8 +123,7 @@ function MarkdownPanel({ fileId, fileContent: initialFileContent }: Props) {
             variant={mode === "edit" ? "default" : "ghost"}
             className={"size-6 px-1 py-0"}
             onClick={() => {
-              setMode("edit");
-              showModeChangeHintToast("edit");
+              handleModeChange("edit");
             }}
           >
             <Pencil1Icon className="size-3" />
@@ -127,8 +135,7 @@ function MarkdownPanel({ fileId, fileContent: initialFileContent }: Props) {
             variant={mode === "edit" ? "ghost" : "default"}
             className="size-6 px-1 py-0"
             onClick={() => {
-              setMode("preview");
-              showModeChangeHintToast("preview");
+              handleModeChange("preview");
             }}
           >
             <EyeOpenIcon className="size-3" />
