@@ -12,6 +12,8 @@ type Props = {
   };
 };
 
+export const dynamic = "force-dynamic";
+
 async function Page({ params }: Props) {
   const { fileId } = params;
   const [fileContent, foldersOrFiles] = await Promise.all([
@@ -36,7 +38,7 @@ async function Page({ params }: Props) {
   return (
     <MarkdownPanel
       fileId={fileId}
-      fileContent={fileContent}
+      defaultFileContent={fileContent}
       defaultMode={defaultMode}
     />
   );
