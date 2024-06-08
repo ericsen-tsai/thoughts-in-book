@@ -14,6 +14,18 @@ const getNode = async (id: number) => {
   return node[0];
 };
 
+export const getNodes = async (): Promise<Omit<Node, "children">[]> => {
+  const selectedNodes = await db
+    .select({ id: nodes.id, name: nodes.name, type: nodes.type })
+    .from(nodes)
+    .execute();
+  return selectedNodes.map((node) => ({
+    id: node.id,
+    name: node.name,
+    type: node.type as NodeType,
+  }));
+};
+
 const getChildNodes = async (parentId: number) => {
   const childNodeIds = await db
     .select({ childId: children.childId })
@@ -115,6 +127,16 @@ export const deleteNode = async ({ id }: { id: number }) => {
   await db.delete(children).where(eq(children.parentId, id)).execute();
   await db.delete(fileContents).where(eq(fileContents.nodeId, id)).execute();
   await db.delete(nodes).where(eq(nodes.id, id)).execute();
+};
+
+export const getFileContent = async (nodeId: number) => {
+  const content = await db
+    .select({ content: fileContents.content })
+    .from(fileContents)
+    .where(eq(fileContents.nodeId, nodeId))
+    .execute();
+
+  return content[0]?.content;
 };
 
 export const updateFileContent = async ({

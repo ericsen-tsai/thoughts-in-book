@@ -7,6 +7,7 @@ import ResizablePanelLayout from "@/components/resizable-panel-layout";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { RESIZABLE_LAYOUT_COOKIE } from "@/constants/layout";
+import { RouteTransitionProvider } from "@/contexts/route-transition-context";
 import { cn } from "@/lib/utils";
 import { TRPCReactProvider } from "@/trpc/react";
 import { api } from "@/trpc/server";
@@ -50,15 +51,17 @@ export default async function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <ResizablePanelLayout
-              defaultLayout={defaultLayout}
-              folder={nestedFolder}
-            >
-              <main className="flex h-screen flex-col items-center justify-center">
-                {children}
-              </main>
-            </ResizablePanelLayout>
-            <Toaster />
+            <RouteTransitionProvider>
+              <ResizablePanelLayout
+                defaultLayout={defaultLayout}
+                folder={nestedFolder}
+              >
+                <main className="flex h-screen flex-col items-center justify-center">
+                  {children}
+                </main>
+              </ResizablePanelLayout>
+              <Toaster />
+            </RouteTransitionProvider>
           </ThemeProvider>
         </TRPCReactProvider>
       </body>

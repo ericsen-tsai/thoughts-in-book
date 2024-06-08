@@ -5,16 +5,39 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
+import { useRouteTransitionContext } from "@/contexts/route-transition-context";
+import useDebounce from "@/hooks/useDebounce";
+import { api } from "@/trpc/react";
+
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { useToast } from "./ui/use-toast";
 
-function MarkdownPanel() {
+type Props = {
+  fileId?: string;
+  fileContent?: string;
+};
+
+function MarkdownPanel({ fileId, fileContent: initialFileContent }: Props) {
   const [mode, setMode] = useState<"edit" | "preview">("edit");
+  const { data: fileContent } = api.fileContent.get.useQuery(+(fileId ?? 0), {
+    enabled: !!fileId,
+    initialData: initialFileContent,
+  });
+
+  const { isRouteChanging } = useRouteTransitionContext();
+
+  const { mutate: updateFileContent } = api.fileContent.update.useMutation();
+  const [value, setValue] = useState<string>(fileContent ?? "");
+
+  const debouncedCallback = useDebounce(updateFileContent, 500);
 
   const textAreaRef = useRef<HTMLTextAreaElement>(null);
 
-  const [value, setValue] = useState<string>("");
+  useEffect(() => {
+    debouncedCallback({ nodeId: +(fileId ?? 0), content: value });
+  }, [value, fileId, debouncedCallback]);
+
   const { toast } = useToast();
 
   const handleToggleMode = useCallback(
@@ -52,7 +75,7 @@ function MarkdownPanel() {
   const renderMarkdownSection = useCallback(() => {
     if (mode === "preview") {
       return (
-        <div className="prose prose-slate dark:prose-invert lg:prose-xl">
+        <div className="prose prose-slate dark:prose-invert">
           <Markdown remarkPlugins={[remarkGfm]}>{value}</Markdown>
         </div>
       );
@@ -70,9 +93,10 @@ function MarkdownPanel() {
             e.currentTarget.value.length,
           )
         }
+        disabled={isRouteChanging}
       />
     );
-  }, [mode, value]);
+  }, [mode, value, isRouteChanging]);
 
   return (
     <div className="container h-full py-8">

@@ -1,7 +1,8 @@
 "use client";
 
 import { ArrowRightIcon, ArrowDownIcon, DotIcon } from "@radix-ui/react-icons";
-import { useCallback, useRef, useState } from "react";
+import { usePathname } from "next/navigation";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { cn } from "@/lib/utils";
@@ -13,7 +14,7 @@ import { Button } from "./ui/button";
 
 type Props = {
   type: NodeType;
-  onSelect?: (path: string) => void;
+  onSelect?: (path: string, shouldNavigate?: boolean) => void;
   currentPath?: string;
   selectedPath?: string;
   nodeName: string;
@@ -22,6 +23,7 @@ type Props = {
   onDelete: () => void;
   onUpdate: (name: string) => void;
   isRoot?: boolean;
+  itemId: number;
 };
 
 function FolderItem({
@@ -35,12 +37,19 @@ function FolderItem({
   onDelete,
   onUpdate,
   isRoot,
+  itemId,
 }: Props) {
   const isFile = type === "file";
+  const isSelected = currentPath === selectedPath;
+  const pathname = usePathname();
+  const isInitialized = useRef(false);
+
+  const fileId = pathname.split("/").pop();
 
   const [isEditing, setIsEditing] = useState(false);
 
   const [name, setName] = useState(nodeName);
+
   const inputRef = useRef<HTMLInputElement>(null);
 
   const renderIcon = useCallback(() => {
@@ -52,6 +61,13 @@ function FolderItem({
     }
     return <DotIcon className="size-3" />;
   }, [folded, isFile]);
+
+  useEffect(() => {
+    if (fileId && itemId === Number(fileId) && !isInitialized.current) {
+      onSelect?.(currentPath, false);
+      isInitialized.current = true;
+    }
+  }, [currentPath, fileId, itemId, onSelect]);
 
   const renderItem = useCallback(() => {
     const onEditConfirm = () => {
@@ -75,8 +91,7 @@ function FolderItem({
             className={cn(
               "w-full overflow-hidden text-ellipsis text-nowrap rounded-md px-2 text-left text-sm font-normal transition group-hover:bg-blue-100 group-hover:text-gray-900",
               {
-                "bg-blue-300 font-semibold text-gray-700":
-                  currentPath === selectedPath,
+                "bg-blue-300 font-semibold text-gray-700": isSelected,
                 hidden: isEditing,
               },
             )}
@@ -104,7 +119,7 @@ function FolderItem({
     nodeName,
     onSelect,
     onUpdate,
-    selectedPath,
+    isSelected,
   ]);
 
   return (

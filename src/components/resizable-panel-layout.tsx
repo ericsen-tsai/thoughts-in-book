@@ -2,11 +2,14 @@
 
 import { FilePlusIcon, ArchiveIcon } from "@radix-ui/react-icons";
 import { setCookie } from "cookies-next";
+import { useRouter } from "next/navigation";
 import { useMemo } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 import { RESIZABLE_LAYOUT_COOKIE } from "@/constants/layout";
+import { useRouteTransitionContext } from "@/contexts/route-transition-context";
 import getNearestFolderPathByPath from "@/lib/getNearestFolderByPath";
+import getNodeByPath from "@/lib/getNodeByPath";
 import { cn } from "@/lib/utils";
 import { useCreateNewNodeStore } from "@/stores/createNewNodeStore";
 import { api } from "@/trpc/react";
@@ -40,23 +43,34 @@ function ResizablePanelLayout({
     onEditingTypeChange: state.onEditingTypeChange,
   }));
 
+  const { startRouteTransition } = useRouteTransitionContext();
+
   const { data: nestedFolder } = api.node.getNestedFolder.useQuery(undefined, {
     initialData: folder,
   });
+
+  const router = useRouter();
 
   const handleLayout = (sizes: number[]) => {
     setCookie(RESIZABLE_LAYOUT_COOKIE, JSON.stringify(sizes));
   };
 
-  const handleSelect = (path: string) => {
+  const handleSelect = (path: string, shouldNavigate = true) => {
     // since focusing on input will trigger onSelect, we need to prevent it
     if (editingType) return;
     onSelectedPathChange(path);
+    const selectedNode = getNodeByPath(path, nestedFolder.children ?? []);
+    if (selectedNode && selectedNode.type === "file" && shouldNavigate) {
+      startRouteTransition(() => {
+        router.push(`/${selectedNode.id}`);
+      });
+    }
   };
 
   const handleSelectRoot = () => {
     // since focusing on input will trigger onSelect, we need to prevent it
     if (editingType) return;
+
     onSelectedPathChange(undefined);
   };
 

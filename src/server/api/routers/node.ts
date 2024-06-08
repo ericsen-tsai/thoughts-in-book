@@ -2,7 +2,13 @@ import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "@/server/api/trpc";
 
-import { deleteNode, getNestedFolder, insertNode, updateNode } from "./utils";
+import {
+  deleteNode,
+  getNestedFolder,
+  getNodes,
+  insertNode,
+  updateNode,
+} from "./utils";
 
 const nodeTypeSchema = z.enum(["folder", "file"]);
 
@@ -11,7 +17,10 @@ export const nodeRouter = createTRPCRouter({
     const nestedFolder = await getNestedFolder();
     return nestedFolder;
   }),
-
+  getFoldersAndFiles: publicProcedure.query(async () => {
+    const nodes = await getNodes();
+    return nodes;
+  }),
   insert: publicProcedure
     .input(
       z.object({

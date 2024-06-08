@@ -2,11 +2,11 @@ import { type Path, type Node } from "@/types/node";
 
 const getNearestFolderPathByPath = (
   path: Path,
-  folder: Node | Node[],
+  nodeOrNodes: Node | Node[],
   root = "",
 ): Path => {
   if (!path) {
-    if (!Array.isArray(folder) && folder.type === "file") {
+    if (!Array.isArray(nodeOrNodes) && nodeOrNodes.type === "file") {
       return root.split(".").slice(0, -2).join(".");
     }
 
@@ -19,9 +19,9 @@ const getNearestFolderPathByPath = (
     return root;
   }
 
-  const nextLayer = Array.isArray(folder)
-    ? folder[parseInt(curr)]
-    : folder[curr as "children"];
+  const nextLayer = Array.isArray(nodeOrNodes)
+    ? nodeOrNodes[parseInt(curr)]
+    : nodeOrNodes[curr as "children"];
 
   if (!nextLayer) {
     return root;

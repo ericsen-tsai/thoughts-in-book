@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowDownIcon, DotIcon } from "@radix-ui/react-icons";
+import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ROOT_ID } from "@/constants/nodeId";
@@ -16,7 +17,7 @@ type Props = {
   node: Node;
   selectedPath?: string;
   level?: number;
-  onSelect?: (path: string) => void;
+  onSelect?: (path: string, shouldNavigate?: boolean) => void;
   currentPath?: string;
   type?: NodeType;
   editingType?: NodeType;
@@ -39,6 +40,8 @@ function FolderTree({
   const [isFolded, setIsFolded] = useState(false);
   const [fileName, setFileName] = useState<string>("");
 
+  const router = useRouter();
+
   const utils = api.useUtils();
   const { isSuccess: isGetNestedFolderSuccess } =
     api.node.getNestedFolder.useQuery();
@@ -51,6 +54,9 @@ function FolderTree({
       toast({
         title: `${node.type.slice(0, 1).toUpperCase()}${node.type.slice(1)} created`,
       });
+      if (node.type === "file") {
+        router.push(`/${node.id}`);
+      }
     },
   });
 
@@ -62,8 +68,9 @@ function FolderTree({
     onSuccess: () => {
       void utils.node.getNestedFolder.invalidate();
       toast({
-        title: `deleted`,
+        title: "Deleted",
       });
+      router.replace("/");
     },
   });
 
@@ -193,6 +200,7 @@ function FolderTree({
             onDelete={() => deleteNode({ id: node.id })}
             onUpdate={(name: string) => updateNode({ name, type, id: node.id })}
             isRoot={node.id === ROOT_ID}
+            itemId={node.id}
           />
 
           {!isFolded && (
