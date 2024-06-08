@@ -9,6 +9,7 @@ import { useRouteTransitionContext } from "@/contexts/route-transition-context";
 import useDebounce from "@/hooks/useDebounce";
 import { api } from "@/trpc/react";
 
+import TooltipCompound from "./tooltip-compound";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 import { useToast } from "./ui/use-toast";
@@ -108,26 +109,31 @@ function MarkdownPanel({ fileId, fileContent: initialFileContent }: Props) {
   return (
     <div className="container h-full py-8">
       <div className="absolute right-0 top-1 flex gap-2 pr-2">
-        <Button
-          variant={mode === "edit" ? "default" : "ghost"}
-          className={"size-6 px-1 py-0"}
-          onClick={() => {
-            setMode("edit");
-            showModeChangeHintToast("edit");
-          }}
-        >
-          <Pencil1Icon className="size-3" />
-        </Button>
-        <Button
-          variant={mode === "edit" ? "ghost" : "default"}
-          className="size-6 px-1 py-0"
-          onClick={() => {
-            setMode("preview");
-            showModeChangeHintToast("preview");
-          }}
-        >
-          <EyeOpenIcon className="size-3" />
-        </Button>
+        <TooltipCompound content="Edit mode">
+          <Button
+            variant={mode === "edit" ? "default" : "ghost"}
+            className={"size-6 px-1 py-0"}
+            onClick={() => {
+              setMode("edit");
+              showModeChangeHintToast("edit");
+            }}
+          >
+            <Pencil1Icon className="size-3" />
+          </Button>
+        </TooltipCompound>
+
+        <TooltipCompound content="Preview mode">
+          <Button
+            variant={mode === "edit" ? "ghost" : "default"}
+            className="size-6 px-1 py-0"
+            onClick={() => {
+              setMode("preview");
+              showModeChangeHintToast("preview");
+            }}
+          >
+            <EyeOpenIcon className="size-3" />
+          </Button>
+        </TooltipCompound>
       </div>
       {renderMarkdownSection()}
     </div>

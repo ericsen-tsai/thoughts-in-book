@@ -16,6 +16,7 @@ import { api } from "@/trpc/react";
 import { type Node } from "@/types/node";
 
 import FolderTree from "./folder-tree";
+import TooltipCompound from "./tooltip-compound";
 import { Button } from "./ui/button";
 
 export const dynamic = "force-dynamic";
@@ -94,24 +95,28 @@ function ResizablePanelLayout({
     <PanelGroup direction="horizontal" onLayout={handleLayout}>
       <Panel defaultSize={defaultLayout[0]} minSize={20} className="relative">
         <div className="absolute right-0 top-1 flex gap-2 pr-2">
-          <Button
-            variant={"ghost"}
-            className="size-6 px-1 py-0"
-            onClick={() => {
-              handleEditing("folder");
-            }}
-          >
-            <ArchiveIcon className="size-3" />
-          </Button>
-          <Button
-            variant={"ghost"}
-            className="size-6 px-1 py-0"
-            onClick={() => {
-              handleEditing("file");
-            }}
-          >
-            <FilePlusIcon className="size-3" />
-          </Button>
+          <TooltipCompound content="Create folder">
+            <Button
+              variant={"ghost"}
+              className="size-6 px-1 py-0"
+              onClick={() => {
+                handleEditing("folder");
+              }}
+            >
+              <ArchiveIcon className="size-3" />
+            </Button>
+          </TooltipCompound>
+          <TooltipCompound content="Create file">
+            <Button
+              variant={"ghost"}
+              className="size-6 px-1 py-0"
+              onClick={() => {
+                handleEditing("file");
+              }}
+            >
+              <FilePlusIcon className="size-3" />
+            </Button>
+          </TooltipCompound>
         </div>
         <div
           onClick={handleSelectRoot}
