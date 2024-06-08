@@ -13,7 +13,7 @@ import getNodeByPath from "@/lib/getNodeByPath";
 import { cn } from "@/lib/utils";
 import { useCreateNewNodeStore } from "@/stores/createNewNodeStore";
 import { api } from "@/trpc/react";
-import { type Node } from "@/types/node";
+import { type NodeType, type Node } from "@/types/node";
 
 import FolderTree from "./folder-tree";
 import TooltipCompound from "./tooltip-compound";
@@ -45,12 +45,11 @@ function ResizablePanelLayout({
   }));
 
   const { startRouteTransition } = useRouteTransitionContext();
+  const router = useRouter();
 
   const { data: nestedFolder } = api.node.getNestedFolder.useQuery(undefined, {
     initialData: folder,
   });
-
-  const router = useRouter();
 
   const handleLayout = (sizes: number[]) => {
     setCookie(RESIZABLE_LAYOUT_COOKIE, JSON.stringify(sizes));
@@ -75,7 +74,7 @@ function ResizablePanelLayout({
     onSelectedPathChange(undefined);
   };
 
-  const handleEditing = (type?: "folder" | "file") => {
+  const handleEditing = (type?: NodeType) => {
     onEditingTypeChange(type);
   };
 

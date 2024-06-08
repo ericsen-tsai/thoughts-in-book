@@ -27,11 +27,11 @@ async function Page({ params }: Props) {
     ? (JSON.parse(mode.value) as Mode)
     : undefined;
 
-  if (
-    foldersOrFiles.find(
-      (node) => node.id === +fileId && node.type === "file",
-    ) === undefined
-  ) {
+  const canFileBeFound = foldersOrFiles.find(
+    (node) => node.id === +fileId && node.type === "file",
+  );
+
+  if (!canFileBeFound) {
     notFound();
   }
 

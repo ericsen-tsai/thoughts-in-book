@@ -6,8 +6,14 @@ import {
   DotIcon,
   PilcrowIcon,
 } from "@radix-ui/react-icons";
-import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useParams } from "next/navigation";
+import {
+  type MouseEvent,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { cn } from "@/lib/utils";
@@ -44,18 +50,20 @@ function FolderItem({
   isRoot,
   itemId,
 }: Props) {
-  const isFile = type === "file";
-  const isSelected = currentPath === selectedPath;
-  const pathname = usePathname();
   const isInitialized = useRef(false);
-
-  const fileId = pathname.split("/").pop();
-
+  const inputRef = useRef<HTMLInputElement>(null);
+  const fileId = useParams<{ fileId: string }>();
   const [isEditing, setIsEditing] = useState(false);
-
   const [name, setName] = useState(nodeName);
 
-  const inputRef = useRef<HTMLInputElement>(null);
+  const isFile = type === "file";
+
+  useEffect(() => {
+    if (fileId && itemId === Number(fileId) && !isInitialized.current) {
+      onSelect?.(currentPath, false);
+      isInitialized.current = true;
+    }
+  }, [currentPath, fileId, itemId, onSelect]);
 
   const renderIcon = useCallback(() => {
     if (isRoot) {
@@ -70,15 +78,17 @@ function FolderItem({
     return <DotIcon className="size-3" />;
   }, [folded, isFile, isRoot]);
 
-  useEffect(() => {
-    if (fileId && itemId === Number(fileId) && !isInitialized.current) {
-      onSelect?.(currentPath, false);
-      isInitialized.current = true;
-    }
-  }, [currentPath, fileId, itemId, onSelect]);
-
   const renderItem = useCallback(() => {
-    const onEditConfirm = () => {
+    const isSelected = currentPath === selectedPath;
+
+    const onItemButtonClick = (e: MouseEvent<HTMLButtonElement>) => {
+      e.stopPropagation();
+      onSelect?.(currentPath);
+      if (isFile) return;
+      onFoldChange(!folded);
+    };
+
+    const onItemEditConfirm = () => {
       setIsEditing(false);
       if (name === nodeName) return;
       if (!name) {
@@ -91,13 +101,8 @@ function FolderItem({
     return (
       <>
         {!isEditing && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onSelect?.(currentPath);
-              if (isFile) return;
-              onFoldChange(!folded);
-            }}
+          <Button
+            onClick={onItemButtonClick}
             className={cn(
               "w-full overflow-hidden text-ellipsis text-nowrap rounded-md px-2 text-left text-sm font-normal transition group-hover:bg-blue-100 group-hover:text-gray-900",
               {
@@ -105,9 +110,10 @@ function FolderItem({
                 hidden: isEditing,
               },
             )}
+            variant={"ghost"}
           >
             {!isRoot ? name : ""}
-          </button>
+          </Button>
         )}
         {isEditing && (
           <FolderFileInput
@@ -115,25 +121,27 @@ function FolderItem({
             onNameChange={(val: string) => {
               setName(val);
             }}
-            onEditConfirm={onEditConfirm}
+            onEditConfirm={onItemEditConfirm}
             ref={inputRef}
           />
         )}
       </>
     );
   }, [
+    currentPath,
+    selectedPath,
     isEditing,
-    isSelected,
     isRoot,
     name,
-    nodeName,
-    onUpdate,
     onSelect,
-    currentPath,
     isFile,
     onFoldChange,
     folded,
+    nodeName,
+    onUpdate,
   ]);
+
+  const shouldIgnoreClick = isFile || isRoot;
 
   return (
     <ContextMenu>
@@ -142,9 +150,9 @@ function FolderItem({
           variant="ghost"
           size="icon"
           className={cn("size-6 p-1", {
-            "pointer-events-none": isFile || isRoot,
+            "pointer-events-none": shouldIgnoreClick,
           })}
-          onClick={isFile || isRoot ? undefined : () => onFoldChange(!folded)}
+          onClick={shouldIgnoreClick ? undefined : () => onFoldChange(!folded)}
         >
           {renderIcon()}
         </Button>
