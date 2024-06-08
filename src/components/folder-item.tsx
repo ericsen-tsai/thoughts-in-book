@@ -101,7 +101,7 @@ function FolderItem({
     return (
       <>
         {!isEditing && (
-          <Button
+          <button
             onClick={onItemButtonClick}
             className={cn(
               "w-full overflow-hidden text-ellipsis text-nowrap rounded-md px-2 text-left text-sm font-normal transition group-hover:bg-blue-100 group-hover:text-gray-900",
@@ -110,10 +110,9 @@ function FolderItem({
                 hidden: isEditing,
               },
             )}
-            variant={"ghost"}
           >
             {!isRoot ? name : ""}
-          </Button>
+          </button>
         )}
         {isEditing && (
           <FolderFileInput

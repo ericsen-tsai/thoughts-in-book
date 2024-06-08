@@ -2,14 +2,20 @@
 
 import { Pencil1Icon, EyeOpenIcon } from "@radix-ui/react-icons";
 import { setCookie } from "cookies-next";
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type ClipboardEvent,
+} from "react";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 import { MODE_COOKIE } from "@/constants/mode";
 import { useRouteTransitionContext } from "@/contexts/route-transition-context";
 import useDebounce from "@/hooks/useDebounce";
-// import { uploadFiles } from "@/lib/uploadthing";
+import { uploadFiles } from "@/lib/uploadthing";
 import { api } from "@/trpc/react";
 import { type Mode } from "@/types/mode";
 
@@ -86,18 +92,38 @@ function MarkdownPanel({ fileId, defaultFileContent, defaultMode }: Props) {
     };
   }, [handleToggleMode]);
 
-  // const uploadSomeFiles = async () => {
-  //   // create fake png file
-  //   const files = [
-  //     new File(["(⌐□_□)"], "chucknorris.png", {
-  //       type: "image/png",
-  //     }),
-  //   ];
-  //   const res = await uploadFiles("imageUploader", {
-  //     files,
-  //   });
-  //   console.log({ res });
-  // };
+  const insertImageMarkdown = (url: string) => {
+    const imageMarkdown = `![Image](${url})`;
+    setValue((prevValue) => prevValue + "\n" + imageMarkdown);
+  };
+
+  const uploadImage = async (file: File) => {
+    const res = await uploadFiles("imageUploader", {
+      files: [file],
+    });
+    console.log({ res });
+    return res[0]?.serverData.fileUrl;
+  };
+
+  const handlePaste = useCallback(
+    async (event: ClipboardEvent<HTMLTextAreaElement>) => {
+      const clipboardData = event.clipboardData;
+      const items = clipboardData.items;
+
+      for (const item of items) {
+        console.log({ item });
+        if (item.type.indexOf("image") === -1) continue;
+        const file = item.getAsFile();
+        if (!file) continue;
+
+        const imageUrl = await uploadImage(file);
+        if (!imageUrl) continue;
+        insertImageMarkdown(imageUrl);
+        event.preventDefault();
+      }
+    },
+    [],
+  );
 
   const renderMarkdownSection = useCallback(() => {
     if (mode === "preview") {
@@ -121,42 +147,40 @@ function MarkdownPanel({ fileId, defaultFileContent, defaultMode }: Props) {
           )
         }
         disabled={isRouteChanging}
+        onPaste={handlePaste}
       />
     );
-  }, [mode, value, isRouteChanging]);
+  }, [mode, value, isRouteChanging, handlePaste]);
 
   return (
-    <>
-      {/* <Button onClick={uploadSomeFiles}>Upload some files</Button> */}
-      <div className="container h-full py-8">
-        <div className="absolute right-0 top-1 flex gap-2 pr-2">
-          <TooltipCompound content="Edit mode">
-            <Button
-              variant={mode === "edit" ? "default" : "ghost"}
-              className={"size-6 px-1 py-0"}
-              onClick={() => {
-                handleModeChange("edit");
-              }}
-            >
-              <Pencil1Icon className="size-3" />
-            </Button>
-          </TooltipCompound>
+    <div className="container h-full overflow-y-auto py-8">
+      <div className="absolute right-5 top-1 flex gap-2 pr-2">
+        <TooltipCompound content="Edit mode">
+          <Button
+            variant={mode === "edit" ? "default" : "ghost"}
+            className={"size-6 px-1 py-0"}
+            onClick={() => {
+              handleModeChange("edit");
+            }}
+          >
+            <Pencil1Icon className="size-3" />
+          </Button>
+        </TooltipCompound>
 
-          <TooltipCompound content="Preview mode">
-            <Button
-              variant={mode === "edit" ? "ghost" : "default"}
-              className="size-6 px-1 py-0"
-              onClick={() => {
-                handleModeChange("preview");
-              }}
-            >
-              <EyeOpenIcon className="size-3" />
-            </Button>
-          </TooltipCompound>
-        </div>
-        {renderMarkdownSection()}
+        <TooltipCompound content="Preview mode">
+          <Button
+            variant={mode === "edit" ? "ghost" : "default"}
+            className="size-6 px-1 py-0"
+            onClick={() => {
+              handleModeChange("preview");
+            }}
+          >
+            <EyeOpenIcon className="size-3" />
+          </Button>
+        </TooltipCompound>
       </div>
-    </>
+      {renderMarkdownSection()}
+    </div>
   );
 }
 
