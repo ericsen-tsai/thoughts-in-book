@@ -40,21 +40,28 @@ function MarkdownPanel({ fileId, fileContent: initialFileContent }: Props) {
 
   const { toast } = useToast();
 
+  const showModeChangeHintToast = useCallback(
+    (mode: "edit" | "preview") => {
+      toast({
+        title: `Switched to ${mode} mode`,
+        description: `Press "Shift + Command + M" to switch back to ${
+          mode === "edit" ? "preview" : "edit"
+        } mode`,
+      });
+    },
+    [toast],
+  );
+
   const handleToggleMode = useCallback(
     (event: KeyboardEvent) => {
       // check if the Shift key && command Key and M are pressed
       if (event.shiftKey && event.metaKey && event.key === "m") {
         const nextMode = mode === "edit" ? "preview" : "edit";
         setMode(nextMode);
-        toast({
-          title: `Switched to ${nextMode} mode`,
-          description: `Press "Shift + Command + M" to switch back to ${
-            nextMode === "edit" ? "preview" : "edit"
-          } mode`,
-        });
+        showModeChangeHintToast(nextMode);
       }
     },
-    [toast, mode],
+    [mode, showModeChangeHintToast],
   );
 
   useEffect(() => {
@@ -75,7 +82,7 @@ function MarkdownPanel({ fileId, fileContent: initialFileContent }: Props) {
   const renderMarkdownSection = useCallback(() => {
     if (mode === "preview") {
       return (
-        <div className="prose prose-slate dark:prose-invert">
+        <div className="prose prose-slate max-w-full dark:prose-invert">
           <Markdown remarkPlugins={[remarkGfm]}>{value}</Markdown>
         </div>
       );
@@ -106,6 +113,7 @@ function MarkdownPanel({ fileId, fileContent: initialFileContent }: Props) {
           className={"size-6 px-1 py-0"}
           onClick={() => {
             setMode("edit");
+            showModeChangeHintToast("edit");
           }}
         >
           <Pencil1Icon className="size-3" />
@@ -115,6 +123,7 @@ function MarkdownPanel({ fileId, fileContent: initialFileContent }: Props) {
           className="size-6 px-1 py-0"
           onClick={() => {
             setMode("preview");
+            showModeChangeHintToast("preview");
           }}
         >
           <EyeOpenIcon className="size-3" />

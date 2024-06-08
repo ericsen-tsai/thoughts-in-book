@@ -20,7 +20,7 @@ const inter = Inter({
 export const metadata = {
   title: "Thoughts in Books",
   description: "A place to store your thoughts on books",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
+  icons: [{ rel: "icon", url: "/favicon.svg" }],
 };
 
 export default async function RootLayout({

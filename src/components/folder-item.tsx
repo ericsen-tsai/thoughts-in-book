@@ -1,6 +1,11 @@
 "use client";
 
-import { ArrowRightIcon, ArrowDownIcon, DotIcon } from "@radix-ui/react-icons";
+import {
+  ArrowRightIcon,
+  ArrowDownIcon,
+  DotIcon,
+  PilcrowIcon,
+} from "@radix-ui/react-icons";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 
@@ -53,6 +58,9 @@ function FolderItem({
   const inputRef = useRef<HTMLInputElement>(null);
 
   const renderIcon = useCallback(() => {
+    if (isRoot) {
+      return <PilcrowIcon className="size-3" />;
+    }
     if (!isFile && folded) {
       return <ArrowRightIcon className="size-3" />;
     }
@@ -60,7 +68,7 @@ function FolderItem({
       return <ArrowDownIcon className="size-3" />;
     }
     return <DotIcon className="size-3" />;
-  }, [folded, isFile]);
+  }, [folded, isFile, isRoot]);
 
   useEffect(() => {
     if (fileId && itemId === Number(fileId) && !isInitialized.current) {
@@ -87,6 +95,8 @@ function FolderItem({
             onClick={(e) => {
               e.stopPropagation();
               onSelect?.(currentPath);
+              if (isFile) return;
+              onFoldChange(!folded);
             }}
             className={cn(
               "w-full overflow-hidden text-ellipsis text-nowrap rounded-md px-2 text-left text-sm font-normal transition group-hover:bg-blue-100 group-hover:text-gray-900",
@@ -112,14 +122,17 @@ function FolderItem({
       </>
     );
   }, [
-    currentPath,
     isEditing,
+    isSelected,
     isRoot,
     name,
     nodeName,
-    onSelect,
     onUpdate,
-    isSelected,
+    onSelect,
+    currentPath,
+    isFile,
+    onFoldChange,
+    folded,
   ]);
 
   return (
@@ -128,8 +141,10 @@ function FolderItem({
         <Button
           variant="ghost"
           size="icon"
-          className={cn(isFile && "cursor-default", "size-6 p-1")}
-          onClick={isFile ? undefined : () => onFoldChange(!folded)}
+          className={cn("size-6 p-1", {
+            "pointer-events-none": isFile || isRoot,
+          })}
+          onClick={isFile || isRoot ? undefined : () => onFoldChange(!folded)}
         >
           {renderIcon()}
         </Button>

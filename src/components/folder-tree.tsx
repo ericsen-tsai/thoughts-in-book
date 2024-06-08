@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ROOT_ID } from "@/constants/nodeId";
+import { useRouteTransitionContext } from "@/contexts/route-transition-context";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
 import { type NodeType, type Node } from "@/types/node";
@@ -39,6 +40,7 @@ function FolderTree({
   const [localNode, setLocalNode] = useState<Node>(node);
   const [isFolded, setIsFolded] = useState(false);
   const [fileName, setFileName] = useState<string>("");
+  const { startRouteTransition } = useRouteTransitionContext();
 
   const router = useRouter();
 
@@ -55,7 +57,9 @@ function FolderTree({
         title: `${node.type.slice(0, 1).toUpperCase()}${node.type.slice(1)} created`,
       });
       if (node.type === "file") {
-        router.push(`/${node.id}`);
+        startRouteTransition(() => {
+          router.push(`/${node.id}`);
+        });
       }
     },
   });
