@@ -4,7 +4,6 @@ import { Inter } from "next/font/google";
 import { cookies, headers } from "next/headers";
 
 import ResizablePanelLayout from "@/components/resizable-panel-layout";
-import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { CURRENT_PATH_HEADER } from "@/constants/header";
 import { RESIZABLE_LAYOUT_COOKIE } from "@/constants/layout";
@@ -13,6 +12,7 @@ import getFileIdByPathname from "@/lib/getFileIdByPathname";
 import getSelectedPathByFileId from "@/lib/getSelectedPathByFileId";
 import { cn } from "@/lib/utils";
 import { NodeStoreProvider } from "@/providers/node-store-provider";
+import { ThemeProvider } from "@/providers/theme-provider";
 import { TRPCReactProvider } from "@/trpc/react";
 import { api } from "@/trpc/server";
 
