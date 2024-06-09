@@ -7,6 +7,7 @@ import { useMemo } from "react";
 import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
 
 import { RESIZABLE_LAYOUT_COOKIE } from "@/constants/layout";
+import { ROOT_PATH_PREFIX } from "@/constants/node";
 import { useRouteTransitionContext } from "@/contexts/route-transition-context";
 import getNearestFolderPathByPath from "@/lib/getNearestFolderByPath";
 import getNodeByPath from "@/lib/getNodeByPath";
@@ -59,7 +60,7 @@ function ResizablePanelLayout({
     // since focusing on input will trigger onSelect, we need to prevent it
     if (editingType) return;
     onSelectedPathChange(path);
-    const selectedNode = getNodeByPath(path, nestedFolder.children ?? []);
+    const selectedNode = getNodeByPath(path, [nestedFolder]);
     if (selectedNode && selectedNode.type === "file" && shouldNavigate) {
       startRouteTransition(() => {
         router.push(`/${selectedNode.id}`);
@@ -71,7 +72,7 @@ function ResizablePanelLayout({
     // since focusing on input will trigger onSelect, we need to prevent it
     if (editingType) return;
 
-    onSelectedPathChange(undefined);
+    onSelectedPathChange(ROOT_PATH_PREFIX);
   };
 
   const handleEditing = (type?: NodeType) => {
@@ -81,13 +82,9 @@ function ResizablePanelLayout({
   const nearestFolderPath = useMemo(
     () =>
       selectedPath
-        ? getNearestFolderPathByPath(
-            selectedPath,
-            nestedFolder.children ?? [],
-            "",
-          )
+        ? getNearestFolderPathByPath(selectedPath, [nestedFolder], "")
         : "",
-    [nestedFolder.children, selectedPath],
+    [nestedFolder, selectedPath],
   );
 
   return (
@@ -120,7 +117,7 @@ function ResizablePanelLayout({
         <div
           onClick={handleSelectRoot}
           className={cn("h-full border-2", {
-            "border-gray-100": selectedPath === undefined,
+            "border-gray-100": selectedPath === ROOT_PATH_PREFIX,
           })}
         >
           <FolderTree

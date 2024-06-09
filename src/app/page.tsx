@@ -1,4 +1,4 @@
-import { redirect } from "next/navigation";
+import { RedirectType, redirect } from "next/navigation";
 
 import getFirstFileId from "@/lib/getFirstFileId";
 import { api } from "@/trpc/server";
@@ -6,12 +6,10 @@ import { api } from "@/trpc/server";
 async function Home() {
   const nestedFolder = await api.node.getNestedFolder();
 
-  const rootChildren = nestedFolder.children;
-
-  const firstFileId = getFirstFileId(rootChildren ?? []);
+  const firstFileId = getFirstFileId([nestedFolder]);
 
   if (firstFileId) {
-    return redirect(`/${firstFileId}`);
+    return redirect(`/${firstFileId}`, RedirectType.replace);
   }
 
   return <div>Please create a file to edit</div>;

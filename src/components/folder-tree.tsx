@@ -4,7 +4,7 @@ import { ArrowDownIcon, DotIcon } from "@radix-ui/react-icons";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { ROOT_ID } from "@/constants/node";
+import { ROOT_ID, ROOT_PATH_PREFIX } from "@/constants/node";
 import { useRouteTransitionContext } from "@/contexts/route-transition-context";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
@@ -31,7 +31,7 @@ function FolderTree({
   selectedPath,
   level = 0,
   onSelect,
-  currentPath = "",
+  currentPath = ROOT_PATH_PREFIX,
   type = "folder",
   editingType,
   nearestFolderPath,
@@ -41,7 +41,7 @@ function FolderTree({
   const [isFolded, setIsFolded] = useState(false);
   const [fileName, setFileName] = useState<string>("");
   const { startRouteTransition } = useRouteTransitionContext();
-
+  const [isComposing, setIsComposing] = useState(false);
   const router = useRouter();
 
   const utils = api.useUtils();
@@ -156,7 +156,7 @@ function FolderTree({
           value={fileName}
           onBlur={() => onNodeInputConfirm()}
           onKeyDown={(e) => {
-            if (e.key === "Enter") {
+            if (e.key === "Enter" && !isComposing) {
               onNodeInputConfirm();
             }
           }}
@@ -164,6 +164,8 @@ function FolderTree({
             setFileName(e.target.value);
           }}
           ref={inputRef}
+          onCompositionStart={() => setIsComposing(true)}
+          onCompositionEnd={() => setIsComposing(false)}
         />
       </div>
     );
@@ -171,6 +173,7 @@ function FolderTree({
     editingType,
     fileName,
     insertNode,
+    isComposing,
     level,
     localNode,
     node.id,
@@ -194,13 +197,12 @@ function FolderTree({
       {
         <li>
           <FolderItem
-            type={type}
+            node={node}
             onSelect={onSelect}
             currentPath={currentPath}
             selectedPath={selectedPath}
-            nodeName={node.name}
             folded={isFolded}
-            onFoldChange={setIsFolded}
+            onFoldChange={(folded) => setIsFolded(folded)}
             onDelete={() => deleteNode({ id: node.id })}
             onUpdate={(name: string) => updateNode({ name, type, id: node.id })}
             isRoot={node.id === ROOT_ID}
@@ -213,7 +215,7 @@ function FolderTree({
                   <FolderTree
                     node={child}
                     level={level + 1}
-                    currentPath={`${currentPath}${level === 0 ? "" : ".children."}${index}`}
+                    currentPath={`${currentPath}${".children."}${index}`}
                     onSelect={onSelect}
                     type={child.type}
                     selectedPath={selectedPath}

@@ -8,7 +8,7 @@ export type NodeStates = {
 };
 
 export type NodeActions = {
-  onSelectedPathChange: (path?: string) => void;
+  onSelectedPathChange: (path: string) => void;
   onEditingTypeChange: (type?: NodeType) => void;
 };
 
@@ -22,7 +22,7 @@ export const defaultState: NodeStates = {
 export const createNodeStore = (initialState: NodeStates = defaultState) => {
   return createStore<NodeStore>()((set) => ({
     ...initialState,
-    onSelectedPathChange: (path?: string) => set({ selectedPath: path }),
+    onSelectedPathChange: (path: string) => set({ selectedPath: path }),
     onEditingTypeChange: (type?: NodeType) => set({ editingType: type }),
   }));
 };

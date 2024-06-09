@@ -9,7 +9,7 @@ import { CURRENT_PATH_HEADER } from "@/constants/header";
 import { RESIZABLE_LAYOUT_COOKIE } from "@/constants/layout";
 import { RouteTransitionProvider } from "@/contexts/route-transition-context";
 import getFileIdByPathname from "@/lib/getFileIdByPathname";
-import getSelectedPathByFileId from "@/lib/getSelectedPathByFileId";
+import getFolderPathByFileId from "@/lib/getFolderPathByFileId";
 import { cn } from "@/lib/utils";
 import { NodeStoreProvider } from "@/providers/node-store-provider";
 import { ThemeProvider } from "@/providers/theme-provider";
@@ -46,7 +46,7 @@ export default async function RootLayout({
   const nestedFolder = await api.node.getNestedFolder();
 
   const defaultSelectedPath = fileId
-    ? getSelectedPathByFileId(nestedFolder, +fileId)
+    ? getFolderPathByFileId(nestedFolder, +fileId)
     : undefined;
 
   return (
@@ -66,7 +66,7 @@ export default async function RootLayout({
           >
             <NodeStoreProvider
               initialState={{
-                selectedPath: defaultSelectedPath,
+                selectedPath: defaultSelectedPath ?? undefined,
               }}
             >
               <RouteTransitionProvider>

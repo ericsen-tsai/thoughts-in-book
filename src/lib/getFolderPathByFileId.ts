@@ -4,7 +4,7 @@ import { type Node } from "@/types/node";
 const getFolderPathByFileId = (
   node: Node,
   targetId: number,
-  path = "0",
+  path = ROOT_PATH_PREFIX,
 ): string | null => {
   if (node.id === targetId) {
     return path;
@@ -26,12 +26,4 @@ const getFolderPathByFileId = (
   return null;
 };
 
-const getSelectedPathByFileId = (
-  node: Node,
-  fileId: number,
-): string | undefined => {
-  const fullPath = getFolderPathByFileId(node, fileId);
-  return fullPath ? fullPath.replace(ROOT_PATH_PREFIX, "") : undefined;
-};
-
-export default getSelectedPathByFileId;
+export default getFolderPathByFileId;

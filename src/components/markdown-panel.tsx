@@ -35,6 +35,7 @@ function MarkdownPanel({ fileId, defaultFileContent, defaultMode }: Props) {
   const [pasteCursorPosition, setPasteCursorPosition] = useState<number | null>(
     null,
   );
+
   const { data: fileContent } = api.fileContent.get.useQuery(+(fileId ?? 0), {
     enabled: !!fileId,
     initialData: defaultFileContent,

@@ -6,46 +6,53 @@ import {
   DotIcon,
   PilcrowIcon,
 } from "@radix-ui/react-icons";
-import { type MouseEvent, useCallback, useRef, useState } from "react";
+import { useParams } from "next/navigation";
+import {
+  type MouseEvent,
+  useCallback,
+  useRef,
+  useState,
+  useEffect,
+} from "react";
 
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
+import { ROOT_PATH_PREFIX } from "@/constants/node";
 import { cn } from "@/lib/utils";
-import { type NodeType } from "@/types/node";
+import { type Node } from "@/types/node";
 
 import EditDeleteContextMenu from "./edit-delete-context-menu";
 import FolderFileInput from "./folder-item-input";
 import { Button } from "./ui/button";
 
 type Props = {
-  type: NodeType;
   onSelect?: (path: string, shouldNavigate?: boolean) => void;
   currentPath?: string;
   selectedPath?: string;
-  nodeName: string;
   folded: boolean;
   onFoldChange: (folded: boolean) => void;
   onDelete: () => void;
   onUpdate: (name: string) => void;
   isRoot?: boolean;
+  node: Node;
 };
 
 function FolderItem({
-  type,
   onSelect,
-  currentPath = "",
+  currentPath = ROOT_PATH_PREFIX,
   selectedPath,
-  nodeName,
   folded,
   onFoldChange,
   onDelete,
   onUpdate,
   isRoot,
+  node: { id: nodeId, name: nodeName, type: nodeType },
 }: Props) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(nodeName);
-
-  const isFile = type === "file";
+  const isInitialized = useRef(false);
+  const { fileId } = useParams<{ fileId: string }>();
+  const isFile = nodeType === "file";
 
   const renderIcon = useCallback(() => {
     if (isRoot) {
@@ -60,14 +67,19 @@ function FolderItem({
     return <DotIcon className="size-3" />;
   }, [folded, isFile, isRoot]);
 
+  useEffect(() => {
+    if (fileId && nodeId === Number(fileId) && !isInitialized.current) {
+      onSelect?.(currentPath, false);
+      isInitialized.current = true;
+    }
+  }, [currentPath, fileId, nodeId, onSelect]);
+
   const renderItem = useCallback(() => {
     const isSelected = currentPath === selectedPath;
 
     const onItemButtonClick = (e: MouseEvent<HTMLButtonElement>) => {
       e.stopPropagation();
       onSelect?.(currentPath);
-      if (isFile) return;
-      onFoldChange(!folded);
     };
 
     const onItemEditConfirm = () => {
@@ -115,9 +127,6 @@ function FolderItem({
     isRoot,
     name,
     onSelect,
-    isFile,
-    onFoldChange,
-    folded,
     nodeName,
     onUpdate,
   ]);
