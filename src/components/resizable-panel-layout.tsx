@@ -11,7 +11,7 @@ import { useRouteTransitionContext } from "@/contexts/route-transition-context";
 import getNearestFolderPathByPath from "@/lib/getNearestFolderByPath";
 import getNodeByPath from "@/lib/getNodeByPath";
 import { cn } from "@/lib/utils";
-import { useCreateNewNodeStore } from "@/stores/createNewNodeStore";
+import { useNodeStore } from "@/providers/node-store-provider";
 import { api } from "@/trpc/react";
 import { type NodeType, type Node } from "@/types/node";
 
@@ -37,7 +37,7 @@ function ResizablePanelLayout({
     onSelectedPathChange,
     onEditingTypeChange,
     editingType,
-  } = useCreateNewNodeStore((state) => ({
+  } = useNodeStore((state) => ({
     selectedPath: state.selectedPath,
     onSelectedPathChange: state.onSelectedPathChange,
     editingType: state.editingType,

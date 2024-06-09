@@ -4,7 +4,7 @@ import { ArrowDownIcon, DotIcon } from "@radix-ui/react-icons";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { ROOT_ID } from "@/constants/nodeId";
+import { ROOT_ID } from "@/constants/node";
 import { useRouteTransitionContext } from "@/contexts/route-transition-context";
 import { cn } from "@/lib/utils";
 import { api } from "@/trpc/react";
@@ -204,7 +204,6 @@ function FolderTree({
             onDelete={() => deleteNode({ id: node.id })}
             onUpdate={(name: string) => updateNode({ name, type, id: node.id })}
             isRoot={node.id === ROOT_ID}
-            itemId={node.id}
           />
 
           {!isFolded && (

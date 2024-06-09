@@ -1,6 +1,6 @@
 import { eq } from "drizzle-orm";
 
-import { ROOT_ID } from "@/constants/nodeId";
+import { ROOT_ID } from "@/constants/node";
 import { db } from "@/db";
 import { children, fileContents, nodes } from "@/db/schema";
 import { type Node, type NodeType } from "@/types/node";

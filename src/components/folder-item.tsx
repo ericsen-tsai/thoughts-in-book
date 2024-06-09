@@ -6,14 +6,7 @@ import {
   DotIcon,
   PilcrowIcon,
 } from "@radix-ui/react-icons";
-import { useParams } from "next/navigation";
-import {
-  type MouseEvent,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { type MouseEvent, useCallback, useRef, useState } from "react";
 
 import { ContextMenu, ContextMenuTrigger } from "@/components/ui/context-menu";
 import { cn } from "@/lib/utils";
@@ -34,7 +27,6 @@ type Props = {
   onDelete: () => void;
   onUpdate: (name: string) => void;
   isRoot?: boolean;
-  itemId: number;
 };
 
 function FolderItem({
@@ -48,22 +40,12 @@ function FolderItem({
   onDelete,
   onUpdate,
   isRoot,
-  itemId,
 }: Props) {
-  const isInitialized = useRef(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const fileId = useParams<{ fileId: string }>();
   const [isEditing, setIsEditing] = useState(false);
   const [name, setName] = useState(nodeName);
 
   const isFile = type === "file";
-
-  useEffect(() => {
-    if (fileId && itemId === Number(fileId) && !isInitialized.current) {
-      onSelect?.(currentPath, false);
-      isInitialized.current = true;
-    }
-  }, [currentPath, fileId, itemId, onSelect]);
 
   const renderIcon = useCallback(() => {
     if (isRoot) {

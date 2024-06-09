@@ -1,4 +1,4 @@
-import { ROOT_ID } from "@/constants/nodeId";
+import { ROOT_ID } from "@/constants/node";
 import { type Node } from "@/types/node";
 
 import { children, nodes } from "./schema";
