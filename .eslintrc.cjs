@@ -16,6 +16,7 @@ const config = {
     "react/self-closing-comp": "error",
     "@next/next/no-async-client-component": "error",
     "react-hooks/exhaustive-deps": "error",
+    "react/jsx-no-useless-fragment": "error",
     "@typescript-eslint/array-type": "off",
     "@typescript-eslint/consistent-type-definitions": "off",
     "@typescript-eslint/no-unsafe-assignment": "error",

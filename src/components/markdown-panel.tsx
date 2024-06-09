@@ -136,10 +136,14 @@ function MarkdownPanel({ fileId, defaultFileContent, defaultMode }: Props) {
         const imageUrl = await uploadImage(file);
         if (!imageUrl) continue;
         insertImageMarkdown(imageUrl);
+        toast({
+          title: "Image uploaded",
+          description: "The image has been uploaded successfully.",
+        });
         event.preventDefault();
       }
     },
-    [],
+    [toast],
   );
 
   const renderMarkdownSection = useCallback(() => {
