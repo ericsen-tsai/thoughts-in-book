@@ -16,6 +16,7 @@ import { MODE_COOKIE } from "@/constants/mode";
 import { useRouteTransitionContext } from "@/contexts/route-transition-context";
 import useDebounce from "@/hooks/useDebounce";
 import { uploadFiles } from "@/lib/uploadthing";
+import { useNodeStore } from "@/providers/node-store-provider";
 import { api } from "@/trpc/react";
 import { type Mode } from "@/types/mode";
 
@@ -28,10 +29,28 @@ type Props = {
   fileId?: string;
   defaultFileContent?: string;
   defaultMode?: Mode;
+  defaultSelectedPath?: string;
 };
 
-function MarkdownPanel({ fileId, defaultFileContent, defaultMode }: Props) {
+function MarkdownPanel({
+  fileId,
+  defaultFileContent,
+  defaultMode,
+  defaultSelectedPath,
+}: Props) {
   const [mode, setMode] = useState<Mode>(defaultMode ?? "edit");
+  const { onSelectedPathChange, selectedPath } = useNodeStore((state) => ({
+    onSelectedPathChange: state.onSelectedPathChange,
+    selectedPath: state.selectedPath,
+  }));
+
+  useEffect(() => {
+    if (defaultSelectedPath && selectedPath !== defaultSelectedPath) {
+      onSelectedPathChange(defaultSelectedPath);
+      window.history.replaceState(null, "", `/${fileId}`);
+    }
+  }, [defaultSelectedPath, onSelectedPathChange, selectedPath, fileId]);
+
   const [pasteCursorPosition, setPasteCursorPosition] = useState<number | null>(
     null,
   );
@@ -82,6 +101,7 @@ function MarkdownPanel({ fileId, defaultFileContent, defaultMode }: Props) {
   );
 
   useEffect(() => {
+    // Focus on the textarea when in edit mode
     if (mode === "edit") {
       setTimeout(() => {
         textAreaRef.current?.focus();
@@ -104,11 +124,13 @@ function MarkdownPanel({ fileId, defaultFileContent, defaultMode }: Props) {
       const newValue = `${prevValue.slice(0, textAreaCursorPosition)}${imageMarkdown}${prevValue.slice(textAreaCursorPosition)}`;
       return newValue;
     });
+    // Set the cursor position to the end of the pasted image markdown
     setPasteCursorPosition(textAreaCursorPosition + imageMarkdown.length);
   };
 
   useEffect(() => {
     if (pasteCursorPosition !== null && textAreaRef.current) {
+      // Set the cursor position to the end of the pasted image markdown
       textAreaRef.current.setSelectionRange(
         pasteCursorPosition,
         pasteCursorPosition,
