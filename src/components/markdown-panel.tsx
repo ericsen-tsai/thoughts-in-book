@@ -2,6 +2,7 @@
 
 import { Pencil1Icon, EyeOpenIcon } from "@radix-ui/react-icons";
 import { setCookie } from "cookies-next";
+import { useSearchParams } from "next/navigation";
 import {
   useCallback,
   useEffect,
@@ -13,6 +14,7 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 
 import { MODE_COOKIE } from "@/constants/mode";
+import { PATH_QUERY_KEY } from "@/constants/node";
 import { useRouteTransitionContext } from "@/contexts/route-transition-context";
 import useDebounce from "@/hooks/useDebounce";
 import { uploadFiles } from "@/lib/uploadthing";
@@ -39,17 +41,20 @@ function MarkdownPanel({
   defaultSelectedPath,
 }: Props) {
   const [mode, setMode] = useState<Mode>(defaultMode ?? "edit");
-  const { onSelectedPathChange, selectedPath } = useNodeStore((state) => ({
+  const { onSelectedPathChange } = useNodeStore((state) => ({
     onSelectedPathChange: state.onSelectedPathChange,
-    selectedPath: state.selectedPath,
   }));
 
+  const searchParams = useSearchParams();
+
+  const queryPath = searchParams.get(PATH_QUERY_KEY);
+
   useEffect(() => {
-    if (defaultSelectedPath && selectedPath !== defaultSelectedPath) {
+    if (!!queryPath && defaultSelectedPath) {
       onSelectedPathChange(defaultSelectedPath);
       window.history.replaceState(null, "", `/${fileId}`);
     }
-  }, [defaultSelectedPath, onSelectedPathChange, selectedPath, fileId]);
+  }, [defaultSelectedPath, onSelectedPathChange, fileId, queryPath]);
 
   const [pasteCursorPosition, setPasteCursorPosition] = useState<number | null>(
     null,
